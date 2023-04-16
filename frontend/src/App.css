@@ -1,0 +1,41 @@
+.main{
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #212121;
+    color: whitesmoke;
+    flex-direction: column;
+}
+.create-form label{
+    color: whitesmoke !important;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px !important;
+}
+.navbar{
+    border-bottom: 1px solid whitesmoke;
+    height: 80px;
+}
+.navbar ul{
+    float: right;
+    margin-right: 20px;
+}
+.navbar li{
+    color: whitesmoke;
+    display: inline-block;
+    margin:10px 20px 0 0;
+}
+.navbar li a{
+    color: whitesmoke;
+    text-decoration: none;
+    font-size:18px;
+    padding: 0;
+}
+.logo{
+    font-weight: 700;
+    font-size: 32px;
+    margin:15px 20px 20px 20px;
+    float: left;
+}
+.content{
+    text-align: center;
+}
