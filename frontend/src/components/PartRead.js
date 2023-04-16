@@ -6,21 +6,21 @@ export default function PartRead() {
     const { id } = useParams(); // get id from URL parameter
 
     useEffect(() => {
-        fetch(`/get/${id}`).then((response) => response.json()).then((data) => {
+        fetch(`/getPart/${id}`).then((response) => response.json()).then((data) => {
             setAPIData(data);
         });
     }, [id]);
 
     return (
         <div className='content'>
-            <h1>Dalis</h1>
+            <h1>Detalė</h1>
             {APIData.map((data) => {
                 return (
                     <div>
                         <div className='innerParts'>
-                            <p><a href={`/${data.id}`}>
+                            <p>
                                 <b>Pavadinimas:</b> {data.pavadinimas}
-                            </a></p>
+                            </p>
                             <p>
                                 <b>Gamintojas:</b> {data.gamintojas}
                             </p>
@@ -46,6 +46,7 @@ export default function PartRead() {
                     </div>
                 );
             })}
+            <br/><a className='grizti' href='/detales'>Grįžti</a>
         </div>
     );
 }

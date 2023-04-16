@@ -17,7 +17,7 @@ export default function PartsCreate() {
 
     return (
         <div className='content'>
-            <h1>Dalies kūrimas</h1>
+            <h1>Detalės kūrimas</h1>
             <Form className="create-form">
                 <Form.Field>
                     <label>Gamintojas</label>
@@ -57,6 +57,7 @@ export default function PartsCreate() {
                 </Form.Field>
                 <Button onClick={postData} type='submit'>Sukurti</Button>
             </Form>
+            <br/><a className='grizti' href='/detales'>Grįžti</a>
         </div>
     )
 }

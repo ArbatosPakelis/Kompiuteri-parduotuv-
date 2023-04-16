@@ -9,7 +9,7 @@ export default function NavBar(){
             </div>
             <ul>
                 <li><Link to="/">Pagrindinis</Link></li>
-                <li><Link to="/dalys">Dalys</Link></li>
+                <li><Link to="/detales">Detalės</Link></li>
             </ul>
         </div>
     )

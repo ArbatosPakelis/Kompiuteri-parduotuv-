@@ -39,3 +39,50 @@
 .content{
     text-align: center;
 }
+.dalis{
+    border: 1px solid whitesmoke;
+    width: 20%;
+    display: inline-block;
+    margin: 5px;
+    padding:30px 0;
+}
+.dalis a.dalis-a{
+    color: red;
+    text-transform: uppercase;
+    font-weight:700;
+    font-size:22px;
+    text-decoration: none;
+}
+.dalis .outerParts{
+    border-top: 1px solid whitesmoke;
+    padding: 20px 0 0 0;
+    margin-bottom:-10px;
+}
+.dalis .innerParts{
+    padding: 0 0 30px 0;
+}
+.dalis .outerParts a{
+    color: whitesmoke;
+    font-weight:600;
+    text-decoration: none;
+    padding:10px;
+    margin: 20px 0;
+    cursor: pointer;
+}
+a.prideti{
+    color: whitesmoke;
+    text-decoration: none;
+    font-size:18px;
+    border: 1px solid whitesmoke;
+    padding:5px;
+    margin-bottom:10px;
+}
+a.grizti{
+    color: whitesmoke;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size:16px;
+    border: 1px solid whitesmoke;
+    padding:5px;
+    top:10px;
+}

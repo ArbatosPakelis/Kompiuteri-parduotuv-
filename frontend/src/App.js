@@ -16,10 +16,10 @@ function App() {
                 <NavBar />
                 <Routes>
                     <Route path='/' element={<Home />} />
-                    <Route path='/dalys' element={<PartsShow />} />
-                    <Route path='/dalys/:id' element={<PartRead />} />
-                    <Route path='/dalys/:id/redaguoti' element={<PartEdit />} />
-                    <Route path='/dalys/sukurti' element={<PartCreate />} />
+                    <Route path='/detales' element={<PartsShow />} />
+                    <Route path='/detales/:id' element={<PartRead />} />
+                    <Route path='/detales/:id/redaguoti' element={<PartEdit />} />
+                    <Route path='/detales/prideti' element={<PartCreate />} />
                 </Routes>
             </div>
         </Router>
