@@ -6,11 +6,13 @@ const router = express.Router();
 router.get('/getAllParts', parts.getAllParts);
 router.get('/getPart/:id', parts.getPart);
 router.get('/getPartSpec/:tipas/:id', parts.getPartSpec);
+router.get('/checkDouplication', parts.checkDouplication);
 router.delete('/removePart/:id', parts.removePart);
 router.delete('/removeSpecPart/:tipas/:id', parts.removeSpecPart);
 router.post('/addPart', parts.addPart);
 router.post('/addSpecPart', parts.addSpecPart);
 router.put('/setPart', parts.setPart);
 router.put('/setSpecPart', parts.setSpecPart);
+router.put('/removeAllPartsFromBuild', parts.removeAllPartsFromBuild)
 
 module.exports = router;
