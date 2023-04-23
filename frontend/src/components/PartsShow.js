@@ -42,9 +42,7 @@ export default function PartsShow() {
     return (
         <div className='content'>
             <h1>Detalės</h1>
-            <a className='prideti' href='/detales/prideti'>
-                Pridėti detalę
-            </a>
+            <a className='prideti' onClick={() => {window.location.href = '/detales/prideti'}}>Pridėti detalę</a>
             <br />
             <br />
             {message && <div style={{ color: message.includes('mingai') ? 'green' : 'red' }}>{message}</div>}
@@ -71,7 +69,7 @@ export default function PartsShow() {
                             </p>
                         </div>
                         <div className='outerParts'>
-                            <a href={`/detales/${data.id_Detale}/redaguoti`}>Redaguoti</a>
+                            <a onClick={() => {window.location.href = `/detales/${data.id_Detale}/redaguoti`}}>Redaguoti</a>
                             <a onClick={() => onDelete(data.id_Detale)}>Šalinti</a>
                         </div>
                     </div>

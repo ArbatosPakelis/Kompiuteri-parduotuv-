@@ -91,29 +91,6 @@ const pool  = mysql.createPool({
         });
     }
 
-    // get specific part general info
-    const checkIfBeingBought = (req, res) => {
-        pool.getConnection((err, connection) => {
-        if (err) {
-            return res.status(500).send('Internal Server Error');
-        }
-
-        var sql = '';
-        connection.query(
-            sql,(error, rows) => {
-                connection.release();
-                if (error) {
-                    return res.status(500).send('Internal Server Error');
-                }
-                if (Object.keys(rows).length === 0) {
-                    return res.status(404).send('NotFound');
-                }
-                res.send(rows)
-            }
-        );
-        });
-    }
-
     // get specific part specialized info
     // pavyzdys kaip kviesti:      /getPartSpec?tipas=Procesorius&id=3
     const getPartSpec = (req, res) => {
@@ -285,42 +262,100 @@ const pool  = mysql.createPool({
 
     // Update a general parts info
     const setPart = (req, res) => {
-
         pool.getConnection((err, connection) => {
-            if(err) throw err
+            if (err) throw err;
 
-            
-            const params = req.query // get all params
-            const keys = Object.keys(params) // get param names
-            let line1 = ""
-            let name = ""
-            let id = -1
-            for (a in keys){ // merge data into a single string, but still has a extra comma at the end
-                if(!keys[a].startsWith("id")){
-                    var entry = params[keys[a]]
-                    if (entry.match(/^\d+$/)){ // regex check if text can be a proper number
-                        line1 +=  keys[a] + " = " + entry + ", "
+            const params = req.query; // get all params
+            const keys = Object.keys(params); // get param names
+            let line1 = "";
+            let name = "";
+            let id = -1;
+            for (a in keys) {
+                // merge data into a single string, but still has an extra comma at the end
+                if (!keys[a].startsWith("id")) {
+                    var entry = params[keys[a]];
+                    if (entry.match(/^\d+$/)) {
+                        // regex check if text can be a proper number
+                        line1 += keys[a] + " = " + entry + ", ";
+                    } else {
+                        line1 += keys[a] + " = " + "'" + entry + "', ";
                     }
-                    else{
-                        line1 +=  keys[a] + " = " + '\''+ entry + "\', "
-                    }
-                }
-                else{
-                    name = keys[a]
-                    id = params[keys[a]]
+                } else {
+                    name = keys[a];
+                    id = params[keys[a]];
                 }
             }
-            const sql = 'UPDATE detale SET ' + line1.substring(0, line1.length - 2) + ' WHERE ' + name + " = " + id + ';'
-            connection.query(sql , (err, rows) => {
-                connection.release() // return the connection to pool
+            // check if the part is assigned to the 'preke' table
+            const checkSql = `SELECT COUNT(*) as count FROM detale
+                                  INNER JOIN rinkinio_detale ON detale.fk_Rinkinio_detaleid_Rinkinio_detale = rinkinio_detale.id_Rinkinio_detale
+                                  INNER JOIN kompiuterio_rinkinys ON rinkinio_detale.fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys = kompiuterio_rinkinys.id_Kompiuterio_rinkinys
+                                  INNER JOIN preke ON preke.id_Preke = kompiuterio_rinkinys.fk_Prekeid_Preke
+                                  WHERE detale.${name} = ${id};`;
 
-                if(!err) {
-                    res.send(`Part has been updated`)
+            connection.query(checkSql, (checkErr, checkResult) => {
+                if (checkErr) {
+                    console.log(checkErr);
+                    res.send(checkErr);
                 } else {
-                    console.log(err)
-                    res.send(err)
-                }
+                    const count = checkResult[0].count;
+                    var foreignID = -1;
+                    if (count === 0) {
+                        // if the part is not assigned to the 'preke' table, delete it from the 'kompiuterio rinkinys' and 'rinkinio_detale' table if it exists
+                        const selectSql = `SELECT detale.fk_Rinkinio_detaleid_Rinkinio_detale
+                                               FROM detale
+                                               WHERE id_Detale = ${id};`
+                        connection.query(selectSql, (selErr, selResult) => {
+                            if (!selErr) {
+                                foreignID = selResult[0].fk_Rinkinio_detaleid_Rinkinio_detale;
 
+                                const updateSql = `UPDATE detale
+                                        SET fk_Rinkinio_detaleid_Rinkinio_detale = NULL
+                                        WHERE id_Detale = ${id};`
+
+                                connection.query(updateSql, (updateErr, updateResult) => {
+                                    if (!updateErr) {
+                                        console.log(`Detale has been updated to be NULL`);
+                                    } else {
+                                        console.log(updateErr);
+                                    }
+                                });
+
+                                const deleteSql = `DELETE
+                                                   FROM rinkinio_detale 
+                                                   WHERE id_Rinkinio_detale = ${foreignID};`
+                                connection.query(deleteSql, (deleteErr, deleteResult) => {
+                                    if (!deleteErr) {
+                                        console.log(`Part has been deleted`);
+                                    } else {
+                                        console.log(deleteErr);
+                                    }
+                                });
+
+                                const sql = 'UPDATE detale SET ' + line1.substring(0, line1.length - 2) + ' WHERE ' + name + " = " + id + ';'
+                                connection.query(sql , (err, rows) => {
+                                    connection.release() // return the connection to pool
+
+                                    if(!err) {
+                                        res.send(`Part has been updated`)
+                                        console.log(`Part has been updated`)
+                                    } else {
+                                        console.log(err)
+                                        res.send(err)
+                                    }
+                                })
+
+
+                            } else {
+                                console.log(selErr);
+                            }
+                        });
+                    } else {
+                        // if the part is assigned to the 'preke' table, do not update and send an error message
+                        res.send(
+                            `Part cannot be updated. It is being bought.`
+                        );
+                    }
+                }
             });
         });
     }
@@ -371,29 +406,6 @@ const pool  = mysql.createPool({
         });
     }
 
-        // // Update a general parts info
-        // const removeAllPartsFromBuild = (req, res) => {
-
-        //     pool.getConnection((err, connection) => {
-        //         if(err) throw err
-                
-        //         const id = req.query.id;
-
-        //         const sql = 'UPDATE rinkinio_detale SET fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=0 WHERE fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=' + id
-        //         connection.query(sql , (err, rows) => {
-        //             connection.release() // return the connection to pool
-    
-        //             if(!err) {
-        //                 res.send(`Parts were removed from the build`)
-        //             } else {
-        //                 console.log(err)
-        //                 res.send(err)
-        //             }
-    
-        //         });
-        //     });
-        // }
-
 module.exports = {
     getAllParts,
     getPart,
@@ -404,7 +416,5 @@ module.exports = {
     addSpecPart,
     setPart,
     setSpecPart,
-    checkDouplication,
-    // checkIfBeingBought,
-    // removeAllPartsFromBuild,
+    checkDouplication
 }

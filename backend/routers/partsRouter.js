@@ -13,6 +13,5 @@ router.post('/addPart', parts.addPart);
 router.post('/addSpecPart', parts.addSpecPart);
 router.put('/setPart', parts.setPart);
 router.put('/setSpecPart', parts.setSpecPart);
-router.put('/removeAllPartsFromBuild', parts.removeAllPartsFromBuild)
 
 module.exports = router;
