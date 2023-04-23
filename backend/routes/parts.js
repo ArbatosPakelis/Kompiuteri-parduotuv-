@@ -9,6 +9,54 @@ const pool  = mysql.createPool({
     database        : 'duombaze'
 })
 
+function getSQLParameters(iranga) {
+    var columns = "";
+    var table = "";
+    switch (iranga){
+        case "Motinine plokste":
+            columns = "(`CPU_lizdo_standartas`, `CPU_lizdu_kiekis`, `M2_kiekis`, `SATA_kiekis`, `PCIe_lizdu_kiekis`, `RAM_karta`, `PCIe_standartas`, `id_MotPlokste`)"
+            table = "motinine_plokste"
+            break
+        case "Vaizdo plokste":
+            columns = "(`VRAM_kiekis`, `VRAM_daznis`, `PCIe_standartas`, `jungtis`, `id_Plokste`)"
+            table = "vaizdo_plokste"
+            break
+        case "Procesorius":
+            columns = "(`CPU_lizdo_standartas`, `daznis`, `branduoliu_kiekis`, `id_Procesorius`)"
+            table = "procesorius"
+            break
+        case "Monitorius":
+            columns = "(`atkurimo_daznis`, `dydis`, `panele`, `id_Monitorius`)"
+            table = "monitorius"
+            break
+        case "Maitinimo blokas":
+            columns = "(`galia`, `laidu_kontrole`, `sertifikatas`, `id_Blokas`)"
+            table = "maitinimo_blokas"
+            break
+        case "Klaviatura":
+            columns = "(`tipas`, `id_Klaviatura`)"
+            table = "klaviatura"
+            break
+        case "Ausintuvas":
+            columns = "(`aukstis`, `ausinimo_vamzdziu_kiekis`, `id_Ausintuvas`)"
+            table = "ausintuvas"
+            break
+        case "Atmintis":
+            columns = "(`talpa`, `daznis`, `RAM_karta`, `id_Atmintis`)"
+            table = "atmintis"
+            break
+        case "Kompiuterio pele":
+            columns = "(`laidine`, `id_Pele`)"
+            table = "kompiuterio_pele"
+            break
+        case "Kabelis":
+            columns = "(`ilgis`, `tipas`, `id_Kabelis`)"
+            table = "kabelis"
+            break
+    }
+    return [columns, table];
+}
+
 // Get all userinfo
     const getAllParts = (req, res) => {
       pool.getConnection((err, connection) => {
@@ -51,7 +99,7 @@ const pool  = mysql.createPool({
     }
 
     // check if part infomation duplicates
-    const checkDouplication = (req, res) => {
+    const duplicationCheck = (req, res) => {
         pool.getConnection((err, connection) => {
         if (err) {
             return res.status(500).send('Internal Server Error');
@@ -107,13 +155,14 @@ const pool  = mysql.createPool({
                 tipas +
                 ' = ' +
                 id;
+            console.log(sql)
             connection.query(sql, (error, rows) => {
                 connection.release();
                 if (error) {
                     return res.status(500).send(error);
                 }
                 if (Object.keys(rows).length === 0) {
-                    return res.status(404).send('NotFound');
+                    return res.status(404).json({ error: 'NotFound' });
                 }
                 res.send(rows)
             });
@@ -196,13 +245,14 @@ const pool  = mysql.createPool({
                 }
             }
             const sql = 'INSERT INTO detale(' + line1.substring(0, line1.length - 1) + ') VALUES (' + line2.substring(0, line2.length - 1) + ');'
-            console.log(sql)
-            connection.query(sql, (err, rows) => {
+
+            connection.query(sql, (err, result) => {
             connection.release() // return the connection to pool
             if (!err) {
-                res.send(`detale has been added.`)
+                const id = result.insertId;
+                res.json({ id });
             }
-            else if (err.errno == 1062) {
+            else if (err.errno === 1062) {
                 res.send('douplicate entry, try to think of new id')
             }
             else {
@@ -222,6 +272,7 @@ const pool  = mysql.createPool({
             
             let params = req.query
             const iranga = params["iranga"] // get the type of part we're making
+            const id = params["id"]
             let keys = Object.keys(params)
             let line1 = ""
             for (a in keys){ // besides the first value, merge params names into a single string, but still has a extra comma at the end
@@ -232,7 +283,7 @@ const pool  = mysql.createPool({
             let line2 = ""
             for (a in keys){ // besides the first value, merge data into a single string, but still has a extra comma at the end
                 if(a != 0){
-                    var entry =params[keys[a]]
+                    var entry = params[keys[a]]
                     if (entry.match(/^\d+$/)){ // regex check if text can be a proper number
                         line2 +=  entry + ","
                     }
@@ -241,15 +292,18 @@ const pool  = mysql.createPool({
                     }
                 }
             }
-            const sql = 'INSERT INTO ' + iranga +'(' + line1.substring(0, line1.length - 1) + ') VALUES (' + line2.substring(0, line2.length - 1) + ');'
-            console.log(sql)
+
+            const [columns, table] = getSQLParameters(iranga)
+
+            const sql = 'INSERT INTO ' + table + ' ' + columns + ' VALUES (' + line2.substring(0, line2.length - 1) + ');'
+
             connection.query(sql, (err, rows) => {
             connection.release() // return the connection to pool
             if (!err) {
                 res.send(`detale has been added.`)
             }
             else if (err.errno == 1062) {
-                res.send('douplicate entry, try to think of new id')
+                res.send('duplicate entry, try to think of new id')
             }
             else {
                 console.log(err)
@@ -286,13 +340,13 @@ const pool  = mysql.createPool({
                 }
             }
             // check if the part is assigned to the 'preke' table
-            const checkSql = `SELECT COUNT(*) as count FROM detale
+            const isCurrentPartBeingBought = `SELECT COUNT(*) as count FROM detale
                                   INNER JOIN rinkinio_detale ON detale.fk_Rinkinio_detaleid_Rinkinio_detale = rinkinio_detale.id_Rinkinio_detale
                                   INNER JOIN kompiuterio_rinkinys ON rinkinio_detale.fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys = kompiuterio_rinkinys.id_Kompiuterio_rinkinys
                                   INNER JOIN preke ON preke.id_Preke = kompiuterio_rinkinys.fk_Prekeid_Preke
                                   WHERE detale.${name} = ${id};`;
 
-            connection.query(checkSql, (checkErr, checkResult) => {
+            connection.query(isCurrentPartBeingBought, (checkErr, checkResult) => {
                 if (checkErr) {
                     console.log(checkErr);
                     res.send(checkErr);
@@ -416,5 +470,5 @@ module.exports = {
     addSpecPart,
     setPart,
     setSpecPart,
-    checkDouplication
+    duplicationCheck
 }
