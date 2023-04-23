@@ -1,3 +1,4 @@
+const { json } = require('express');
 const mysql = require('mysql')
 
 const pool  = mysql.createPool({
@@ -36,6 +37,70 @@ const pool  = mysql.createPool({
         }
         connection.query(
             'SELECT * FROM detale WHERE id_Detale = ?', [req.params.id],(error, rows) => {
+                connection.release();
+                if (error) {
+                    return res.status(500).send('Internal Server Error');
+                }
+                if (Object.keys(rows).length === 0) {
+                    return res.status(404).send('NotFound');
+                }
+                res.send(rows)
+            }
+        );
+        });
+    }
+
+    // check if part infomation duplicates
+    const checkDouplication = (req, res) => {
+        pool.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).send('Internal Server Error');
+        }
+
+        const gamintojas = req.query.gamintojas;
+        const pavadinimas = req.query.pavadinimas;
+        const kaina = req.query.kaina;
+        const aprasymas = req.query.aprasymas;
+        const isleidimo_data = req.query.isleidimo_data;
+        // i won't check for amount since it's a bit pointless
+        const spalva = req.query.spalva;
+        const tipas = req.query.tipas;
+
+
+        connection.query(
+            'SELECT detale.id_Detale FROM detale WHERE gamintojas = ? AND pavadinimas = ? AND kaina = ? AND aprasymas = ? AND isleidimo_data = ? AND spalva = ? AND tipas = ?',
+                [gamintojas, pavadinimas, kaina, aprasymas, isleidimo_data, spalva, tipas],(error, rows) => {
+                connection.release();
+                if (error) {
+                    return res.status(500).send('Internal Server Error');
+                }
+                if (Object.keys(rows).length === 0) {
+                    return res.status(404).send('NotFound');
+                }
+                var i = 0;
+                for(a in rows){
+                    i = i + 1
+                }
+                // function only works if I return it this way
+                res.status(200).json({
+                    status: 'success',
+                    ans: i>1,
+                    });
+            }
+        );
+        });
+    }
+
+    // get specific part general info
+    const checkIfBeingBought = (req, res) => {
+        pool.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).send('Internal Server Error');
+        }
+
+        var sql = '';
+        connection.query(
+            sql,(error, rows) => {
                 connection.release();
                 if (error) {
                     return res.status(500).send('Internal Server Error');
@@ -306,6 +371,29 @@ const pool  = mysql.createPool({
         });
     }
 
+        // // Update a general parts info
+        // const removeAllPartsFromBuild = (req, res) => {
+
+        //     pool.getConnection((err, connection) => {
+        //         if(err) throw err
+                
+        //         const id = req.query.id;
+
+        //         const sql = 'UPDATE rinkinio_detale SET fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=0 WHERE fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=' + id
+        //         connection.query(sql , (err, rows) => {
+        //             connection.release() // return the connection to pool
+    
+        //             if(!err) {
+        //                 res.send(`Parts were removed from the build`)
+        //             } else {
+        //                 console.log(err)
+        //                 res.send(err)
+        //             }
+    
+        //         });
+        //     });
+        // }
+
 module.exports = {
     getAllParts,
     getPart,
@@ -316,4 +404,7 @@ module.exports = {
     addSpecPart,
     setPart,
     setSpecPart,
+    checkDouplication,
+    // checkIfBeingBought,
+    // removeAllPartsFromBuild,
 }
