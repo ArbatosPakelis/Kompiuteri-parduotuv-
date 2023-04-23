@@ -6,7 +6,7 @@ const router = express.Router();
 router.get('/getAllParts', parts.getAllParts);
 router.get('/getPart/:id', parts.getPart);
 router.get('/getPartSpec/:tipas/:id', parts.getPartSpec);
-router.get('/checkDouplication', parts.duplicationCheck);
+router.get('/checkDuplication', parts.duplicationCheck);
 router.delete('/removePart/:id', parts.removePart);
 router.delete('/removeSpecPart/:tipas/:id', parts.removeSpecPart);
 router.post('/addPart', parts.addPart);

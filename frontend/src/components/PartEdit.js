@@ -65,7 +65,7 @@ export default function PartsEdit() {
         return Object.keys(errors).length === 0;
     }
 
-    const setNewData = () => {
+    const setNewData = async () => {
         if (validate()) {
             const params = new URLSearchParams({
                 gamintojas: gamintojas,
@@ -76,16 +76,22 @@ export default function PartsEdit() {
                 kiekis: kiekis,
                 spalva: spalva,
                 tipas: tipas,
-                id_Detale: id_Detale // set this variable to the ID of the item you want to update
+                id_Detale: id_Detale
             });
 
-            fetch(`/setPart?${params.toString()}`, {
-                method: 'PUT'
-            })
-
-            window.location.href = '/detales';
+            try {
+                await fetch(`/checkDuplication?${params.toString()}`, {
+                    method: "GET",
+                });
+                await fetch(`/setPart?${params.toString()}`, {
+                    method: "PUT",
+                });
+                window.location.href = "/detales";
+            } catch (error) {
+                console.log(error);
+            }
         }
-    }
+    };
 
     return (
         <div className='content'>
