@@ -364,10 +364,10 @@ function getSQLParameters(iranga) {
                     var foreignID = -1;
                     if (count === 0) {
                         // if the part is not assigned to the 'preke' table, delete it from the 'kompiuterio rinkinys' and 'rinkinio_detale' table if it exists
-                        const selectSql = `SELECT detale.fk_Rinkinio_detaleid_Rinkinio_detale
+                        const deleteFromBuilds = `SELECT detale.fk_Rinkinio_detaleid_Rinkinio_detale
                                                FROM detale
                                                WHERE id_Detale = ${id};`
-                        connection.query(selectSql, (selErr, selResult) => {
+                        connection.query(deleteFromBuilds, (selErr, selResult) => {
                             if (!selErr) {
                                 foreignID = selResult[0].fk_Rinkinio_detaleid_Rinkinio_detale;
 
