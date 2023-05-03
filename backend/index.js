@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-const partsRouter = require('./routers/partsRouter');
+const partsRouter = require('./routers/PartsRouter');
 
 app.use('/', partsRouter);
 app.use('*', (req, res, next) => {

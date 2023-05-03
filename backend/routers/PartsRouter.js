@@ -1,5 +1,5 @@
 const express = require('express');
-const parts = require('../routes/parts')
+const parts = require('../routes/PartsController')
 
 const router = express.Router();
 

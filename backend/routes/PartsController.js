@@ -175,8 +175,17 @@ function getSQLParameters(iranga) {
         if (err) {
             return res.status(500).send('Internal Server Error');
         }
+        const sqlCheck = 'SELECT FROM preke WHERE fk_Detaleid_Detale = ' + req.params.id;
+        //connection.query(sqlCheck, (err, rows) => {
+               //if (!err) {} else {}
+        //});
+
+        const sqlRemoveFromAllBuilds = 'DELETE FROM kompiuterio_rinkinys WHERE fk_Prekeid_Preke = ' + req.params.id;
+        //connection.query(sqlRemoveFromAllBuilds, (err, rows) => {
+            //if (!err) {} else {}
+        //});
+
         const sql = 'DELETE FROM detale WHERE id_Detale = ' + req.params.id;
-        console.log(sql);
         connection.query(sql, (err, rows) => {
             connection.release(); // return the connection to pool
             if (!err) {
