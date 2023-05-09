@@ -1,5 +1,7 @@
-const { json } = require('express');
+const express = require('express');
 const mysql = require('mysql')
+
+const app = express();
 
 const pool  = mysql.createPool({
     connectionLimit : 10,
@@ -57,21 +59,66 @@ function getSQLParameters(iranga) {
     return [columns, table];
 }
 
+function getSQLPartsType(type) {
+    let value = "";
+    switch (type){
+        case "motinine_plokste":
+            value = "Motinine plokste"
+            break
+        case "vaizdo_plokste":
+            value = "Vaizdo plokste"
+            break
+        case "procesorius":
+            value = "procesorius"
+            break
+        case "monitorius":
+            value = "Monitorius"
+            break
+        case "maitinimo_blokas":
+            value = "Maitinimo blokas"
+            break
+        case "klaviatura":
+            value = "Klaviatura"
+            break
+        case "ausintuvas":
+            value = "Ausintuvas"
+            break
+        case "atmintis":
+            value = "Atmintis"
+            break
+        case "isorine_atmintis":
+            value = "Isorine atmintis"
+            break
+        case "kompiuterio_pele":
+            value = "Kompiuterio pele"
+            break
+        case "kabelis":
+            value = "Kabelis"
+            break
+    }
+    return value;
+}
+
 // Get all userinfo
     const getAllParts = (req, res) => {
       pool.getConnection((err, connection) => {
         if (err) throw err;
-        console.log('connected as id ' + connection.threadId);
-        connection.query('SELECT * from detale', (err, rows) => {
+        let sqlQuery = '';
+        let tipas = getSQLPartsType(req.query.tipas);
+        if (tipas !== ""){
+            sqlQuery = 'SELECT * from detale WHERE tipas = "' + tipas + '"';
+        } else{
+            sqlQuery = 'SELECT * from detale';
+        }
+
+        connection.query(sqlQuery, (err, rows) => {
           connection.release(); // return the connection to pool
-  
           if (!err) {
             res.send(rows);
           } else {
             console.log(err);
           }
-  
-          console.log('The data from beer table are: \n', rows);
+          //console.log('The data from beer table are: \n', rows);
         });
       });
     }
@@ -189,9 +236,10 @@ function getSQLParameters(iranga) {
         connection.query(sql, (err, rows) => {
             connection.release(); // return the connection to pool
             if (!err) {
-            res.send(
-                `part info with the record ID ${[req.params.id]} has been removed.`
-            );
+                res.setHeader('Set-Cookie', 'partMessage=success; Max-Age=3');
+                res.send(
+                `success.`
+                );
             } else if (err.errno == 1451) {
             res.send(
                 'part is being used as a foreign key in other tables, delete those entries first'
@@ -259,6 +307,7 @@ function getSQLParameters(iranga) {
             connection.release() // return the connection to pool
             if (!err) {
                 const id = result.insertId;
+                res.setHeader('Set-Cookie', 'partMessage=successADD; Max-Age=3');
                 res.json({ id });
             }
             else if (err.errno === 1062) {
@@ -399,6 +448,7 @@ function getSQLParameters(iranga) {
                                     connection.release() // return the connection to pool
 
                                     if(!err) {
+                                        res.setHeader('Set-Cookie', 'partMessage=successEDIT; Max-Age=3');
                                         res.send(`Part has been updated`)
                                         console.log(`Part has been updated`)
                                     } else {

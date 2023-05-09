@@ -1,43 +1,63 @@
 import React, { useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
+import {useLocation} from "react-router-dom";
 
 export default function PartsShow() {
     const [APIData, setAPIData] = useState([]);
     const [message, setMessage] = useState('');
-    const [editMessage, setEditMessage] = useState('');
+    const location              = useLocation();
 
     useEffect(() => {
-        fetch('/getAllParts')
+        const params = new URLSearchParams(window.location.search);
+        const tipas  = params.get('tipas');
+        const url    = `/getAllParts?tipas=${tipas}`;
+
+        fetch(url)
             .then((response) => response.json())
             .then((data) => {
                 setAPIData(data);
-                if (editMessage) {
-                    setMessage(editMessage);
+                const partMessage = Cookies.get('partMessage');
+
+                if (partMessage === 'successADD') {
                     setMessage('Sėkmingai sukurta detalė!');
-                    setTimeout(() => setMessage(''), 2000);
+                    setTimeout(() => {
+                        setMessage('');
+                    }, 2000);
+                } else if (partMessage === 'successEDIT') {
+                    setMessage('Sėkmingai redaguota detalė!');
+                    setTimeout(() => {
+                        setMessage('');
+                    }, 2000);
                 }
             })
             .catch((error) => {
                 setMessage(`Klaida: ${error.message}`);
             });
-    }, []);
+    }, [location.search]);
 
     const onDelete = (id) => {
         fetch(`/removePart/${id}`, {
             method: 'DELETE',
         })
             .then((response) => {
-                if (response.ok) {
-                    setMessage('Sėkmingai pašalinta detalė!');
-                    setAPIData(APIData.filter((data) => data.id_Detale !== id));
-                    setTimeout(() => setMessage(''), 2000); // reset message state after 5 seconds
+                if (response.ok) { // check if response is ok
+                    response.text().then((text) => { // wait for the Promise to resolve before comparing the text content with a string
+                        if (text === 'success.') {
+                            setMessage('Sėkmingai pašalinta detalė!');
+                            setAPIData(APIData.filter((data) => data.id_Detale !== id));
+                            setTimeout(() => setMessage(''), 2000); // reset message state after 5 seconds
+                        } else {
+                            setMessage('Nepavyko pašalinti detalės!');
+                            setTimeout(() => setMessage(''), 2000); // reset message state after 5 seconds
+                        }
+                    }).catch((error) => {
+                        console.log(error);
+                    });
                 } else {
                     throw new Error('Nepavyko pašalinti detalės.');
                 }
             })
-            .catch((error) => {
-                setMessage(`Klaida: ${error.message}`);
-            });
-    };
+    }
 
     return (
         <div className='content'>
