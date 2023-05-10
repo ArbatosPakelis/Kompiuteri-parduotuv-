@@ -163,8 +163,8 @@ function getSQLPartsType(type) {
 
 
         connection.query(
-            'SELECT detale.id_Detale FROM detale WHERE gamintojas = ? AND pavadinimas = ? AND kaina = ? AND aprasymas = ? AND isleidimo_data = ? AND spalva = ? AND tipas = ?',
-                [gamintojas, pavadinimas, kaina, aprasymas, isleidimo_data, spalva, tipas],(error, rows) => {
+            'SELECT detale.id_Detale FROM detale WHERE gamintojas = ? AND pavadinimas = ? AND tipas = ?',
+                [gamintojas, pavadinimas, tipas],(error, rows) => {
                 connection.release();
                 if (error) {
                     return res.status(500).send('Internal Server Error');

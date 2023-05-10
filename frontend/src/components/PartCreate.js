@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import 'semantic-ui-css/semantic.min.css';
 import { Button, Form } from 'semantic-ui-react';
+import Cookies from "js-cookie";
 
 export default function PartsCreate() {
     const [gamintojas, setGamintojas] = useState('');
@@ -65,21 +66,40 @@ export default function PartsCreate() {
                 tipas: tipas,
             });
 
-            const assignedValues = [additionalField1, additionalField2, additionalField3, additionalField4, additionalField5, additionalField6, additionalField7]
-                .filter(value => value !== '');
-
-            const params2 = new URLSearchParams({});
-            assignedValues.forEach((value, index) => params2.set(`additionalField${index + 1}`, value));
-
-            fetch(`/addPart?${params.toString()}`, {
-                method: 'POST'
-            }).then(response => response.json()).then(data => {
-                const { id } = data;
-                fetch(`/addSpecPart?iranga=${tipas}&${params2.toString()}&id=${id}`, {
-                    method: 'POST'
-                })
-                window.location.href = '/detales';
+            fetch(`/checkDuplication?${params.toString()}`, {
+                method: 'GET'
             })
+            .then((response) => {
+                if (response.ok) { // check if response is ok
+                    response.json().then((data) => { // parse the response body as JSON
+                        if (data.status === 'success') {
+                            Cookies.set('partMessage', 'errorCreate', { expires: 3/86400 });
+                            window.location.href = '/detales';
+                        }
+                    }).catch((error) => {
+                        console.log(error);
+                    });
+                } else {
+                    const assignedValues = [additionalField1, additionalField2, additionalField3, additionalField4, additionalField5, additionalField6, additionalField7]
+                        .filter(value => value !== '');
+
+                    const params2 = new URLSearchParams({});
+                    assignedValues.forEach((value, index) => params2.set(`additionalField${index + 1}`, value));
+
+                    fetch(`/addPart?${params.toString()}`, {
+                        method: 'POST'
+                    }).then(response => response.json()).then(data => {
+                        const {id} = data;
+                        fetch(`/addSpecPart?iranga=${tipas}&${params2.toString()}&id=${id}`, {
+                            method: 'POST'
+                        })
+                        window.location.href = '/detales';
+                    })
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
         }
     }
 

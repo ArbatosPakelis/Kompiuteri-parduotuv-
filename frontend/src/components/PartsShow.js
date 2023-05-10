@@ -5,12 +5,14 @@ import {useLocation} from "react-router-dom";
 export default function PartsShow() {
     const [APIData, setAPIData] = useState([]);
     const [message, setMessage] = useState('');
+    const [tipas, setTipas] = useState('');
     const location              = useLocation();
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const tipas  = params.get('tipas');
         const url    = `/getAllParts?tipas=${tipas}`;
+        setTipas(tipas);
 
         fetch(url)
             .then((response) => response.json())
@@ -25,6 +27,11 @@ export default function PartsShow() {
                     }, 2000);
                 } else if (partMessage === 'successEDIT') {
                     setMessage('Sėkmingai redaguota detalė!');
+                    setTimeout(() => {
+                        setMessage('');
+                    }, 2000);
+                } else if (partMessage === 'errorCreate') {
+                    setMessage('Tokia detalė jau egzistuoja!');
                     setTimeout(() => {
                         setMessage('');
                     }, 2000);

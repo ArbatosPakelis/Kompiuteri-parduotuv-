@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import 'semantic-ui-css/semantic.min.css';
 import { Button, Form } from "semantic-ui-react";
 import { useParams } from "react-router-dom";
+import Cookies from "js-cookie";
 
 export default function PartsEdit() {
     const [gamintojas, setGamintojas] = useState("");
@@ -79,17 +80,29 @@ export default function PartsEdit() {
                 id_Detale: id_Detale
             });
 
-            try {
-                await fetch(`/checkDuplication?${params.toString()}`, {
-                    method: "GET",
-                });
-                await fetch(`/setPart?${params.toString()}`, {
-                    method: "PUT",
-                });
-                window.location.href = "/detales";
-            } catch (error) {
+            fetch(`/checkDuplication?${params.toString()}`, {
+                method: 'GET'
+            })
+            .then((response) => {
+                if (response.ok) { // check if response is ok
+                    response.json().then((data) => { // parse the response body as JSON
+                        if (data.status === 'success') {
+                            Cookies.set('partMessage', 'errorCreate', { expires: 3/86400 });
+                            window.location.href = '/detales';
+                        }
+                    }).catch((error) => {
+                        console.log(error);
+                    });
+                } else {
+                    fetch(`/setPart?${params.toString()}`, {
+                        method: "PUT",
+                    });
+                    window.location.href = "/detales";
+                }
+            })
+            .catch((error) => {
                 console.log(error);
-            }
+            });
         }
     };
 
