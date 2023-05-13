@@ -41,7 +41,7 @@ export default function PartReviews() {
                     </div>
                 ))
             )}
-            <br/><br/><a className='grizti' onClick={() => {window.location.href = `/detales/${id}`}}>Grįžti</a><br/><br/>
+            <br/><br/><button className='grizti' onClick={() => {window.location.href = `/detales/${id}`}}>Grįžti</button><br/><br/>
         </div>
     );
 }

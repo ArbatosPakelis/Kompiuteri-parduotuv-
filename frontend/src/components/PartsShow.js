@@ -107,7 +107,7 @@ export default function PartsShow() {
         <div className='content'>
             <h1>Detalės</h1>
             {/*Cookies.get('sessionType') === 'Admin' && (*/
-            <a className='prideti' onClick={() => {window.location.href = '/detales/prideti'}}>Pridėti detalę</a>
+            <button className='prideti' onClick={() => {window.location.href = '/detales/prideti'}}>Pridėti detalę</button>
             /*)*/}
             <br />
             <br />
@@ -116,11 +116,11 @@ export default function PartsShow() {
                 return (
                     <div className='dalis' key={data.id_Detale}>
                         <div className='innerParts'>
-                            <p>
+                            <div className='dalis-name'>
                                 <a className='dalis-a' href={`/detales/${data.id_Detale}`}>
                                     {data.pavadinimas}
                                 </a>
-                            </p>
+                            </div>
                             <p>
                                 <b>Gamintojas:</b> {data.gamintojas}
                             </p>
@@ -154,8 +154,8 @@ export default function PartsShow() {
                         </div>
                         {/*Cookies.get('sessionType') === 'Admin' && (*/}
                         <div className='outerParts'>
-                            <a onClick={() => {window.location.href = `/detales/${data.id_Detale}/redaguoti`}}>Redaguoti</a>
-                            <a onClick={() => onDelete(data.id_Detale)}>Šalinti</a>
+                            <button className='red-sal' onClick={() => {window.location.href = `/detales/${data.id_Detale}/redaguoti`}}>Redaguoti</button>
+                            <button className='red-sal' onClick={() => onDelete(data.id_Detale)}>Šalinti</button>
                         </div>
                         {/*)*/}
                     </div>
