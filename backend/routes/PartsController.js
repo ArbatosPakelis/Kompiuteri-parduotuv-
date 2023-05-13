@@ -139,7 +139,13 @@ function getTypesForRecommendation(type){
 
 const getAllParts = (req, res) => {
     pool.getConnection((err, connection) => {
-        if (err) throw err;
+        if (err) {
+            console.log(err);
+            if (connection) connection.release();
+            res.status(500).send('Internal Server Error');
+            return;
+        }
+
         let sqlQuery = '';
         const tipas = getSQLPartsType(req.query.tipas);
 
@@ -151,15 +157,16 @@ const getAllParts = (req, res) => {
 
         connection.query(sqlQuery, [tipas], (err, rows) => {
             connection.release();
-            if (!err) {
-                res.send(rows);
-            } else {
+            if (err) {
                 console.log(err);
                 res.status(500).send('Internal Server Error');
+                return;
             }
+            res.send(rows);
         });
     });
 }
+
 
 // get specific part general info
 const getPart = (req, res) => {
@@ -588,20 +595,27 @@ const applyRecommendationLevel = (req, res) => {
 
 const getRecommendations = (req, res) => {
     pool.getConnection((err, connection) => {
-        if (err) throw err;
+        if (err) {
+            console.log(err);
+            if (connection) connection.release();
+            res.status(500).send('Internal Server Error');
+            return;
+        }
 
-        const getAll = `SELECT * FROM rekomendacija;`;
+        const getAll = 'SELECT * FROM rekomendacija;';
 
         connection.query(getAll, (err, rows) => {
+            connection.release();
             if (err) {
                 console.log(err);
-                res.send(err);
-            } else {
-                res.send(rows);
+                res.status(500).send('Internal Server Error');
+                return;
             }
+            res.send(rows);
         });
     });
 };
+
 
 const getReviews = (req, res) => {
     pool.getConnection((err, connection) => {
