@@ -91,6 +91,173 @@ const compatibility = async (req, res) => {
     }
   };
 
+  // computerSet/addComputerSet?pavadinimas=rinkinys3&fk_Naudotojasid_Naudotojas=1
+  const addComputerSet = (req, res) => {
+    const params = req.query // get all params
+    pool.getConnection((err, connection) => {
+        if(err) throw err
+        
+        const keys = Object.keys(params) // get param names
+        let line1 = ""
+        for (a in keys){ // merge params names into a single string, but still has a extra comma at the end
+            line1 += keys[a] + ","
+        }
+        let line2 = ""
+        for (a in keys){ // merge data into a single string, but still has a extra comma at the end
+            var entry = params[keys[a]]
+            if (entry.match(/^\d+$/)){ // regex check if text can be a proper number
+                line2 +=  entry + ","
+            }
+            else{
+                line2 +=  '\''+ entry + "\',"
+            }
+        }
+        const sql = 'INSERT INTO kompiuterio_rinkinys(' + line1.substring(0, line1.length - 1) + ') VALUES (' + line2.substring(0, line2.length - 1) + ');'
+
+        connection.query(sql, (err, result) => {
+        connection.release() // return the connection to pool
+        if (!err) {
+            const id = result.insertId;
+            res.setHeader('Set-Cookie', 'partMessage=successADD; Max-Age=3');
+            res.json({ id });
+        }
+        else if (err.errno === 1062) {
+            res.send('douplicate entry, try to think of new id')
+        }
+        else {
+            console.log(err)
+            res.send(err)
+        }
+
+        });
+    });
+}
+
+// computerSet/updateComputerSet?kiekis=5&id_Rinkinio_detale=92&fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=4&fk_Detaleid_Detale=87
+const updateComputerSet = (req, res) => {
+  const params = req.query // get all params
+  pool.getConnection((err, connection) => {
+      if(err) throw err
+      
+      const keys = Object.keys(params) // get param names
+      let line1 = ""
+      for (a in keys){ // merge params names into a single string, but still has a extra comma at the end
+          line1 += keys[a] + ","
+      }
+      let line2 = ""
+      for (a in keys){ // merge data into a single string, but still has a extra comma at the end
+          var entry = params[keys[a]]
+          if (entry.match(/^\d+$/)){ // regex check if text can be a proper number
+              line2 +=  entry + ","
+          }
+          else{
+              line2 +=  '\''+ entry + "\',"
+          }
+      }
+      const sql = 'INSERT INTO rinkinio_detale(' + line1.substring(0, line1.length - 1) + ') VALUES (' + line2.substring(0, line2.length - 1) + ');'
+
+      connection.query(sql, (err, result) => {
+      connection.release() // return the connection to pool
+      if (!err) {
+          const id = result.insertId;
+          res.setHeader('Set-Cookie', 'partMessage=successADD; Max-Age=3');
+          res.json({ id });
+      }
+      else if (err.errno === 1062) {
+          res.send('douplicate entry, try to think of new id')
+      }
+      else {
+          console.log(err)
+          res.send(err)
+      }
+
+      });
+  });
+}
+
+const getComputerSets= (req, res) => {
+  pool.getConnection((err, connection) => {
+    if (err) throw err;
+    let sqlQuery = '';
+    sqlQuery = 'SELECT * from kompiuterio_rinkinys;';
+
+    connection.query(sqlQuery, (err, rows) => {
+      if (err) {
+        console.log(err);
+        connection.release(); // Release the connection back to the pool in case of an error
+        return;
+      }
+
+      res.send(rows);
+      connection.release(); // Release the connection back to the pool after sending the response
+    });
+  });
+}
+
+const unlinkPartFromBuild= (req, res) => {
+  pool.getConnection((err, connection) => {
+    if (err) throw err;
+    let sqlQuery = '';
+    sqlQuery = 'DELETE FROM rinkinio_detale WHERE fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=' + req.query.id;
+
+    connection.query(sqlQuery, (err, rows) => {
+      if (err) {
+        console.log(err);
+        connection.release(); // Release the connection back to the pool in case of an error
+        return;
+      }
+
+      res.send(rows);
+      connection.release(); // Release the connection back to the pool after sending the response
+    });
+  });
+}
+
+// dar reikia padaryti detales ištrinimą iš rinkinio
+const deleteComputerSet= (req, res) => {
+  pool.getConnection((err, connection) => {
+    if (err) throw err;
+    let sqlQuery = '';
+    sqlQuery = 'DELETE FROM kompiuterio_rinkinys WHERE id_Kompiuterio_rinkinys=' + req.query.id;
+
+    connection.query(sqlQuery, (err, rows) => {
+      if (err) {
+        console.log(err);
+        connection.release(); // Release the connection back to the pool in case of an error
+        return;
+      }
+
+      res.send(rows);
+      connection.release(); // Release the connection back to the pool after sending the response
+    });
+  });
+}
+
+const removeComputerSetPart= (req, res) => {
+  pool.getConnection((err, connection) => {
+    if (err) throw err;
+    let sqlQuery = '';
+    sqlQuery = 'DELETE FROM rinkinio_detale WHERE id_Rinkinio_detale=' + req.query.id;
+
+    connection.query(sqlQuery, (err, rows) => {
+      if (err) {
+        console.log(err);
+        connection.release(); // Release the connection back to the pool in case of an error
+        return;
+      }
+
+      res.send(rows);
+      connection.release(); // Release the connection back to the pool after sending the response
+    });
+  });
+}
+
 module.exports = {
-    compatibility
+    compatibility,
+    addComputerSet,
+    getComputerSets,
+    unlinkPartFromBuild,
+    deleteComputerSet,
+    removeComputerSetPart,
+    updateComputerSet,
 }
