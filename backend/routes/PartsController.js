@@ -1,5 +1,7 @@
 const express = require('express');
 const mysql = require('mysql')
+const req = require("express/lib/request");
+const res = require("express/lib/response");
 
 const app = express();
 
@@ -99,6 +101,43 @@ function getSQLPartsType(type) {
     return value;
 }
 
+function getTypesForRecommendation(type){
+    let value = [];
+    switch (type){
+        case "Motinine plokste":
+            value = ['Atmintis', 'Procesorius', 'Vaizdo plokste']
+            break
+        case "Vaizdo plokste":
+            value = ['Motinine plokste', 'Monitorius', 'Maitinimo blokas']
+            break
+        case "Procesorius":
+            value = ['Atmintis', 'Motinine plokste', 'Isorine atmintis']
+            break
+        case "Monitorius":
+            value = ['Vaizdo plokste', 'Kompiuterio pele', 'Klaviatura']
+            break
+        case "Maitinimo blokas":
+            value = ['Kabelis', 'Ausintuvas', 'Motinine plokste']
+            break
+        case "Klaviatura":
+            value = ['Kabelis', 'Kompiuterio pele', 'Monitorius']
+            break
+        case "Ausintuvas":
+            value = ['Motinine plokste', 'Atmintis', 'Maitinimo blokas']
+            break
+        case "Atmintis":
+            value = ['Isorine atmintis', 'Motinine plokste', 'Procesorius']
+            break
+        case "Kompiuterio pele":
+            value = ['Klaviatura', 'Kabelis', 'Monitorius']
+            break
+        case "Kabelis":
+            value = ['Isorine atmintis', 'Maitinimo blokas', 'Monitorius']
+            break
+    }
+    return value;
+}
+
     const getAllParts = (req, res) => {
       pool.getConnection((err, connection) => {
         if (err) throw err;
@@ -117,7 +156,6 @@ function getSQLPartsType(type) {
           } else {
             console.log(err);
           }
-          //console.log('The data from beer table are: \n', rows);
         });
       });
     }
@@ -601,6 +639,77 @@ const getReviews = (req, res) => {
     });
 }
 
+const recommendParts = (req, res) => {
+    pool.getConnection((err, connection) => {
+        const tipas = req.query.type;
+        const id = req.query.id;
+
+        connection.query('SELECT * from detale', (err, selectedParts) => {
+            const initialParts = selectedParts;
+            if (!err) {
+                // filter parts
+                const types = getTypesForRecommendation(tipas)
+                const filteredParts = selectedParts.filter(part => types.includes(part.tipas));
+                const parts = filteredParts.sort(() => Math.random() - 0.5);
+                connection.query('SELECT * FROM rekomendacija;', (err, recommendations) => {
+                    if (!err) {
+                        // filter recommendations by selected parts and then sort it by priority
+                        const filteredRecommendations = recommendations.filter(recommendation =>
+                            parts.some(part => part.id_Detale === recommendation.fk_Detaleid_Detale))
+                            .sort((a, b) => a.prioritetas - b.prioritetas);
+                        // take first 5 parts
+                        const selectedParts = filteredRecommendations.slice(0, 5).map(recommendation =>
+                            parts.find(part => part.id_Detale === recommendation.fk_Detaleid_Detale)
+                        );
+
+                        let updatedParts = selectedParts;
+
+                        if (selectedParts.length < 5) {
+                            const additionalPartsCount = 5 - selectedParts.length;
+                            // Create a Set to store unique parts based on id_Detale
+                            const uniquePartsSet = new Set(selectedParts.map(part => part.id_Detale));
+                            // Filter out the duplicate parts from additionalParts
+                            const additionalParts = initialParts.filter(part => !uniquePartsSet.has(part.id_Detale)).slice(0, additionalPartsCount);
+                            // Add the additional parts to the selectedParts array
+                            const filledParts = [...selectedParts, ...additionalParts];
+                            // Remove the current part
+                            updatedParts = filledParts.filter(part => part.id_Detale !== parseInt(id));
+                        }
+
+                        const getReviewScore = `SELECT detale.id_Detale, COUNT(atsiliepimas.id_Atsiliepimas) AS count FROM detale
+                                             LEFT JOIN preke ON preke.fk_Detaleid_Detale = detale.id_Detale
+                                             LEFT JOIN atsiliepimas ON atsiliepimas.fk_Prekeid_Preke = preke.id_Preke
+                                             GROUP BY detale.id_Detale;`;
+
+                        connection.query(getReviewScore, (checkErr, checkResults) => {
+                            connection.release();
+                            if (!checkErr) {
+                                // Create a map to store the counts for each part
+                                const partCountsMap = new Map();
+                                checkResults.forEach(result => {
+                                    const partId = result.id_Detale;
+                                    const count = result.count;
+                                    partCountsMap.set(partId, count);
+                                });
+
+                                // Sort the updatedParts array based on the counts in descending order
+                                updatedParts.sort((a, b) => partCountsMap.get(b.id_Detale) - partCountsMap.get(a.id_Detale));
+                                res.send(updatedParts)
+                            } else {
+                                console.log(checkErr);
+                            }
+                        });
+                    } else {
+                        console.log(err);
+                    }
+                });
+            } else {
+                console.log(err);
+            }
+        });
+    });
+}
+
 module.exports = {
     getAllParts,
     getPart,
@@ -614,5 +723,6 @@ module.exports = {
     duplicationCheck,
     applyRecommendationLevel,
     getRecommendations,
-    getReviews
+    getReviews,
+    recommendParts
 }

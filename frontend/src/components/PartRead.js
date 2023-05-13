@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import {Form} from "semantic-ui-react";
 
 export default function PartRead() {
     const [partData, setPartData] = useState([]);
+    const [recommendationsData, setRecommendationsData] = useState([]);
     const [extendedPartData, setExtendedPartData] = useState([]);
     const { id } = useParams(); // get id from URL parameter
 
@@ -14,10 +16,19 @@ export default function PartRead() {
                 return data;
             })
             .then((data) => {
-                fetch(`/getPartSpec/${data[0].tipas}/${id}`)
+                const type = data[0].tipas;
+                return fetch(`/getPartSpec/${type}/${id}`)
+                    .then((response) => response.json())
+                    .then((extendedData) => {
+                        setExtendedPartData(extendedData);
+                        return type;
+                    });
+            })
+            .then((type) => {
+                fetch(`/recommendParts?type=${type}&id=${id}`)
                     .then((response) => response.json())
                     .then((data) => {
-                        setExtendedPartData(data);
+                        setRecommendationsData(data);
                     });
             });
     }, [id]);
@@ -199,6 +210,36 @@ export default function PartRead() {
                     </div>
                 );
             })}
+
+            <div className='content'>
+                <br/><br/><hr/><h2 style={{ marginTop: '10px', marginBottom: '10px' }}>Rekomendacijos</h2><hr/>
+                {recommendationsData.map((data) => {
+                    return (
+                        <div className='rekomendacijos'>
+                            <div className='innerParts'>
+                                <p>
+                                    <a className='rekomendacija-a' href={`/detales/${data.id_Detale}`}>
+                                        {data.pavadinimas}
+                                    </a>
+                                </p>
+                                <p>
+                                    <b>Gamintojas:</b> {data.gamintojas}
+                                </p>
+                                <p>
+                                    <b>Kaina:</b> {data.kaina}
+                                </p>
+                                <p>
+                                    <b>Spalva:</b> {data.spalva}
+                                </p>
+                                <p>
+                                    <b>Tipas:</b> {data.tipas}
+                                </p>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
             <br/><a className='grizti' href='/detales'>Grįžti</a>
         </div>
     );

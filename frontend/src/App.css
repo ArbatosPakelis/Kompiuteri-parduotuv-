@@ -150,3 +150,20 @@ ul li ul li {
     margin: 5px;
     padding:30px 20px;
 }
+.rekomendacijos{
+    border: 1px solid whitesmoke;
+    width: 15%;
+    display: inline-block;
+    margin: 5px;
+    padding:30px 20px;
+}
+.rekomendacijos a.rekomendacija-a{
+    color: red;
+    text-transform: uppercase;
+    font-weight:700;
+    font-size:22px;
+    text-decoration: none;
+}
+.rekomendacijos .innerParts{
+    padding: 0 0 30px 0;
+}
