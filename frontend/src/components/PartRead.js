@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import {Form} from "semantic-ui-react";
 
 export default function PartRead() {
     const [partData, setPartData] = useState([]);
@@ -203,25 +202,28 @@ export default function PartRead() {
                                                 </p>
                                             </div>
                                         )
+                                    default:
+                                        return null;
                                 }
                             })}
                         </div>
-                        <br/><br/><a className='atsiliepimai' onClick={() => {window.location.href = `/detales/${data.id_Detale}/atsiliepimai`}}>Atsiliepimai</a><br/><br/>
+                        <br/><br/><button className='atsiliepimai' onClick={() => {window.location.href = `/detales/${data.id_Detale}/atsiliepimai`}}>Atsiliepimai</button><br/><br/>
                     </div>
                 );
             })}
 
             <div className='content'>
                 <br/><br/><hr/><h2 style={{ marginTop: '10px', marginBottom: '10px' }}>Rekomendacijos</h2><hr/>
+                <div className='rekomendacijos-div'>
                 {recommendationsData.map((data) => {
                     return (
                         <div className='rekomendacijos'>
                             <div className='innerParts'>
-                                <p>
+                                <div className='rekomendacija-name'>
                                     <a className='rekomendacija-a' href={`/detales/${data.id_Detale}`}>
                                         {data.pavadinimas}
                                     </a>
-                                </p>
+                                </div>
                                 <p>
                                     <b>Gamintojas:</b> {data.gamintojas}
                                 </p>
@@ -239,8 +241,8 @@ export default function PartRead() {
                     );
                 })}
             </div>
-
-            <br/><a className='grizti' href='/detales'>Grįžti</a>
+            </div>
+            <br/><button className='grizti' onClick={() => {window.location.href = '/detales?tipas=all'}}>Grįžti</button><br/><br/>
         </div>
     );
 }

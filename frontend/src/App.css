@@ -59,8 +59,12 @@
     padding: 20px 0 0 0;
     margin-bottom:-10px;
 }
+.dalis-name{
+    padding:20px;
+}
 .dalis .innerParts{
     padding: 0 0 30px 0;
+    min-height:380px;
 }
 .dalis .outerParts a{
     color: whitesmoke;
@@ -70,7 +74,7 @@
     margin: 20px 0;
     cursor: pointer;
 }
-a.prideti {
+button.prideti {
     background-color: whitesmoke;
     text-decoration: none;
     color: #000;
@@ -78,8 +82,9 @@ a.prideti {
     font-size: 16px;
     padding: 10px;
     margin-bottom: 10px;
+    border:none;
 }
-a.grizti{
+button.grizti{
     background-color: whitesmoke;
     text-decoration: none;
     color: #000;
@@ -87,8 +92,9 @@ a.grizti{
     font-size: 16px;
     padding: 10px;
     margin-bottom: 10px;
+    border:none;
 }
-a.atsiliepimai{
+button.atsiliepimai{
     background-color: #212121;
     text-decoration: none;
     color: white;
@@ -99,7 +105,13 @@ a.atsiliepimai{
     margin-bottom: 10px;
     cursor: pointer;
 }
-
+button.red-sal{
+    background:none;
+    border:none;
+    color:white;
+    cursor: pointer;
+    margin-right:15px;
+}
 .create-form {
     display: flex;
     flex-direction: column;
@@ -150,12 +162,19 @@ ul li ul li {
     margin: 5px;
     padding:30px 20px;
 }
+.rekomendacijos-div{
+    display:block;
+    margin:0;
+}
 .rekomendacijos{
     border: 1px solid whitesmoke;
     width: 15%;
     display: inline-block;
     margin: 5px;
     padding:30px 20px;
+}
+.rekomendacija-name{
+    height:150px;
 }
 .rekomendacijos a.rekomendacija-a{
     color: red;

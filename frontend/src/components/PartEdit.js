@@ -88,7 +88,7 @@ export default function PartsEdit() {
                     response.json().then((data) => { // parse the response body as JSON
                         if (data.status === 'success') {
                             Cookies.set('partMessage', 'errorCreate', { expires: 3/86400 });
-                            window.location.href = '/detales';
+                            window.location.href = '/detales?tipas=all';
                         }
                     }).catch((error) => {
                         console.log(error);
@@ -97,7 +97,7 @@ export default function PartsEdit() {
                     fetch(`/setPart?${params.toString()}`, {
                         method: "PUT",
                     });
-                    window.location.href = "/detales";
+                    window.location.href = "/detales?tipas=all";
                 }
             })
             .catch((error) => {
@@ -168,7 +168,7 @@ export default function PartsEdit() {
                 <Button onClick={setNewData} type='submit'>Atnaujinti</Button>
             </Form>
 
-            <br/><a className='grizti' href='/detales'>Grįžti</a>
+            <br/><button className='grizti' href='/detales?tipas=all'>Grįžti</button>
         </div>
     )
 }

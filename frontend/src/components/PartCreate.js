@@ -74,7 +74,7 @@ export default function PartsCreate() {
                     response.json().then((data) => { // parse the response body as JSON
                         if (data.status === 'success') {
                             Cookies.set('partMessage', 'errorCreate', { expires: 3/86400 });
-                            window.location.href = '/detales';
+                            window.location.href = '/detales?tipas=all';
                         }
                     }).catch((error) => {
                         console.log(error);
@@ -93,7 +93,7 @@ export default function PartsCreate() {
                         fetch(`/addSpecPart?iranga=${tipas}&${params2.toString()}&id=${id}`, {
                             method: 'POST'
                         })
-                        window.location.href = '/detales';
+                        window.location.href = '/detales?tipas=all';
                     })
                 }
             })
@@ -366,7 +366,7 @@ export default function PartsCreate() {
                 )}
                 <br/><Button onClick={postData} type='submit'>Sukurti</Button>
             </Form>
-            <br/><br/><a className='grizti' href='/detales'>Grįžti</a><br/><br/>
+            <br/><br/><button className='grizti' onClick={() => {window.location.href = '/detales?tipas=all'}}>Grįžti</button><br/><br/>
         </div>
     )
 }
