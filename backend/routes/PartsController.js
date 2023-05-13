@@ -97,6 +97,9 @@ function getSQLPartsType(type) {
         case "kabelis":
             value = "Kabelis"
             break
+        default:
+            value = "All"
+            break
     }
     return value;
 }
@@ -142,11 +145,12 @@ function getTypesForRecommendation(type){
       pool.getConnection((err, connection) => {
         if (err) throw err;
         let sqlQuery = '';
-        let tipas = getSQLPartsType(req.query.tipas);
-        if (tipas !== ""){
-            sqlQuery = 'SELECT * from detale WHERE tipas = "' + tipas + '"';
-        } else{
+        const tipas = getSQLPartsType(req.query.tipas);
+        console.log(tipas)
+        if (tipas === 'All'){
             sqlQuery = 'SELECT * from detale';
+        } else{
+            sqlQuery = 'SELECT * from detale WHERE tipas = "' + tipas + '"';
         }
 
         connection.query(sqlQuery, (err, rows) => {

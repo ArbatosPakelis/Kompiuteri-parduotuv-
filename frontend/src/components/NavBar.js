@@ -7,7 +7,7 @@ export default function NavBar(){
             <nav role="navigation">
                 <ul>
                     <li><Link to="/">Pagrindinis</Link></li>
-                    <li><Link to="/detales?tipas=null">Detalės</Link>
+                    <li><Link to="/detales?tipas=all">Detalės</Link>
                         <ul className="dropdown">
                             <li><Link to="/detales?tipas=motinine_plokste">Motininė plokštė</Link></li>
                             <li><Link to="/detales?tipas=vaizdo_plokste">Vaizdo plokštė</Link></li>
