@@ -99,7 +99,6 @@ function getSQLPartsType(type) {
     return value;
 }
 
-// Get all userinfo
     const getAllParts = (req, res) => {
       pool.getConnection((err, connection) => {
         if (err) throw err;
@@ -519,6 +518,63 @@ function getSQLPartsType(type) {
         });
     }
 
+    const applyRecommendationLevel = (req, res) => {
+        pool.getConnection((err, connection) => {
+            if (err) throw err;
+
+            const currentTime = new Date().toLocaleTimeString();
+            const priority = req.query.priority;
+            const partID = req.query.id_Detale;
+
+            const checkRecommendationQuery = `SELECT COUNT(*) AS count FROM rekomendacija WHERE fk_Detaleid_Detale = '${partID}';`;
+
+            connection.query(checkRecommendationQuery, (checkErr, checkResult) => {
+                if (checkErr) {
+                    console.log(checkErr);
+                    res.send(checkErr);
+                } else {
+                    const recommendationExists = checkResult[0].count > 0;
+
+                    let updateRecommendation;
+                    if (recommendationExists) {
+                        updateRecommendation = `UPDATE rekomendacija SET data = '${currentTime}', prioritetas = '${priority}' WHERE fk_Detaleid_Detale = '${partID}';`;
+                    } else {
+                        updateRecommendation = `INSERT INTO rekomendacija(data, prioritetas, fk_Detaleid_Detale, fk_Administratoriusid_Naudotojas) 
+                                       VALUES ('${currentTime}', '${priority}', '${partID}', '1');`;
+                    }
+
+                    connection.query(updateRecommendation, (updateErr, updateResult) => {
+                        if (updateErr) {
+                            console.log(updateErr);
+                            res.send(updateErr);
+                        } else {
+                            res.setHeader('Set-Cookie', 'partMessage=successRECOMMENDATION; Max-Age=3');
+                            console.log("Recommendation created or updated");
+                            res.send(`success`);
+                        }
+                    });
+                }
+            });
+        });
+    };
+
+    const getRecommendations = (req, res) => {
+        pool.getConnection((err, connection) => {
+            if (err) throw err;
+
+            const getAll = `SELECT * FROM rekomendacija;`;
+
+            connection.query(getAll, (err, rows) => {
+                if (err) {
+                    console.log(err);
+                    res.send(err);
+                } else {
+                    res.send(rows);
+                }
+            });
+        });
+    };
+
 module.exports = {
     getAllParts,
     getPart,
@@ -529,5 +585,7 @@ module.exports = {
     addSpecPart,
     setPart,
     setSpecPart,
-    duplicationCheck
+    duplicationCheck,
+    applyRecommendationLevel,
+    getRecommendations
 }
