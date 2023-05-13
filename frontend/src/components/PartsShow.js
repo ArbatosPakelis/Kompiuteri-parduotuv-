@@ -112,7 +112,7 @@ export default function PartsShow() {
             <br />
             <br />
             {message && <div style={{ color: message.includes('mingai') ? 'green' : 'red' }}>{message}</div>}
-            {partsData.map((data, index) => {
+            {partsData.map((data) => {
                 return (
                     <div className='dalis' key={data.id_Detale}>
                         <div className='innerParts'>

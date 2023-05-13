@@ -9,6 +9,7 @@ router.get('/getPartSpec/:tipas/:id', parts.getPartSpec);
 router.get('/checkDuplication', parts.duplicationCheck);
 router.get('/getRecommendations', parts.getRecommendations);
 router.get('/getReviews/:id', parts.getReviews);
+router.get('/recommendParts', parts.recommendParts);
 router.delete('/removePart/:id', parts.removePart);
 router.delete('/removeSpecPart/:tipas/:id', parts.removeSpecPart);
 router.post('/addPart', parts.addPart);
