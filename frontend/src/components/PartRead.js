@@ -195,6 +195,7 @@ export default function PartRead() {
                                 }
                             })}
                         </div>
+                        <br/><br/><a className='atsiliepimai' onClick={() => {window.location.href = `/detales/${data.id_Detale}/atsiliepimai`}}>Atsiliepimai</a><br/><br/>
                     </div>
                 );
             })}

@@ -75,10 +75,8 @@ a.prideti {
     text-decoration: none;
     color: #000;
     border-radius: 5px;
-    border: 2px solid #212121;
-    outline: 2px solid whitesmoke;
     font-size: 16px;
-    padding: 5px;
+    padding: 10px;
     margin-bottom: 10px;
 }
 a.grizti{
@@ -86,12 +84,22 @@ a.grizti{
     text-decoration: none;
     color: #000;
     border-radius: 5px;
-    border: 2px solid #212121;
-    outline: 2px solid whitesmoke;
     font-size: 16px;
-    padding: 5px;
+    padding: 10px;
     margin-bottom: 10px;
 }
+a.atsiliepimai{
+    background-color: #212121;
+    text-decoration: none;
+    color: white;
+    border-radius: 5px;
+    border: 2px solid white;
+    font-size: 16px;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
 .create-form {
     display: flex;
     flex-direction: column;
@@ -134,4 +142,11 @@ ul li ul:hover {
 ul li ul li {
     clear: both;
     width: 100%;
+}
+.atsiliepimas{
+    border: 1px solid whitesmoke;
+    width: 20%;
+    display: inline-block;
+    margin: 5px;
+    padding:30px 20px;
 }

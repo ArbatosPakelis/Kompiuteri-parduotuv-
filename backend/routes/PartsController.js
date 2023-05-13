@@ -122,7 +122,6 @@ function getSQLPartsType(type) {
       });
     }
 
-
     // get specific part general info
     const getPart = (req, res) => {
         pool.getConnection((err, connection) => {
@@ -201,7 +200,7 @@ function getSQLPartsType(type) {
                 tipas +
                 ' = ' +
                 id;
-            console.log(sql)
+
             connection.query(sql, (error, rows) => {
                 connection.release();
                 if (error) {
@@ -575,6 +574,33 @@ function getSQLPartsType(type) {
         });
     };
 
+const getReviews = (req, res) => {
+    pool.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).send('Internal Server Error');
+        }
+
+        const ID = req.params.id;
+
+        const sql = `SELECT * FROM atsiliepimas
+                     INNER JOIN preke ON atsiliepimas.fk_Prekeid_Preke = preke.id_Preke
+                     INNER JOIN detale on preke.fk_Detaleid_Detale = detale.id_Detale
+                     WHERE detale.id_Detale = ${ID}; `;
+
+        connection.query(sql,(error, rows) => {
+                connection.release();
+                if (error) {
+                    return res.status(500).send('Internal Server Error');
+                }
+                if (Object.keys(rows).length === 0) {
+                    return res.status(404).send('NotFound');
+                }
+                res.send(rows)
+            }
+        );
+    });
+}
+
 module.exports = {
     getAllParts,
     getPart,
@@ -587,5 +613,6 @@ module.exports = {
     setSpecPart,
     duplicationCheck,
     applyRecommendationLevel,
-    getRecommendations
+    getRecommendations,
+    getReviews
 }

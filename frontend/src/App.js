@@ -4,6 +4,7 @@ import './App.css';
 import Home from './components/Home';
 import PartsShow from './components/PartsShow';
 import PartRead from './components/PartRead';
+import PartReviews from './components/PartReviews';
 import PartEdit from './components/PartEdit';
 import PartCreate from './components/PartCreate';
 import NavBar from './components/NavBar';
@@ -18,6 +19,7 @@ function App() {
                     <Route path='/' element={<Home />} />
                     <Route path='/detales' element={<PartsShow />} />
                     <Route path='/detales/:id' element={<PartRead />} />
+                    <Route path='/detales/:id/atsiliepimai' element={<PartReviews />} />
                     <Route path='/detales/:id/redaguoti' element={<PartEdit />} />
                     <Route path='/detales/prideti' element={<PartCreate />} />
                 </Routes>
