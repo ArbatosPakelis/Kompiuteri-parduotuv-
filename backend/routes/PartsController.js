@@ -141,28 +141,32 @@ function getTypesForRecommendation(type){
     return value;
 }
 
-    const getAllParts = (req, res) => {
-      pool.getConnection((err, connection) => {
-        if (err) throw err;
-        let sqlQuery = '';
-        const tipas = getSQLPartsType(req.query.tipas);
-
-        if (tipas === 'All'){
-            sqlQuery = 'SELECT * from detale';
-        } else{
-            sqlQuery = 'SELECT * from detale WHERE tipas = "' + tipas + '"';
+const getAllParts = (req, res) => {
+    pool.getConnection((err, connection) => {
+      if (err) throw err;
+      let sqlQuery = '';
+      const tipas = getSQLPartsType(req.query.tipas);
+  
+      if (tipas === 'All') {
+        sqlQuery = 'SELECT * from detale';
+      } else {
+        sqlQuery = 'SELECT * from detale WHERE tipas = "' + tipas + '"';
+      }
+  
+      connection.query(sqlQuery, (err, rows) => {
+        if (err) {
+          console.log(err);
+          connection.release(); // Release the connection back to the pool in case of an error
+          return;
         }
-
-        connection.query(sqlQuery, (err, rows) => {
-          connection.release(); // return the connection to pool
-          if (!err) {
-            res.send(rows);
-          } else {
-            console.log(err);
-          }
-        });
+  
+        res.send(rows);
+        connection.release(); // Release the connection back to the pool after sending the response
       });
-    }
+    });
+  }
+  
+  
 
     // get specific part general info
     const getPart = (req, res) => {
