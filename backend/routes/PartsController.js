@@ -146,7 +146,7 @@ function getTypesForRecommendation(type){
         if (err) throw err;
         let sqlQuery = '';
         const tipas = getSQLPartsType(req.query.tipas);
-        console.log(tipas)
+
         if (tipas === 'All'){
             sqlQuery = 'SELECT * from detale';
         } else{
