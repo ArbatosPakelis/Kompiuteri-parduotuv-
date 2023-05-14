@@ -32,7 +32,8 @@ export default function ComputerSetList() {
         <div className='content'>
             <h1>Rinkiniai</h1>
             {/*Cookies.get('sessionType') === 'Admin' && (*/
-            <button className='prideti' onClick={() => {window.location.href = '/rinkiniai/new'}}>Pridėti rinkinį</button>
+            <><button className='prideti' onClick={() => { window.location.href = '/rinkiniai/new'; } }>Pridėti rinkinį</button>
+            <button className='generuoti' onClick={() => { window.location.href = '/rinkiniai/generuoti'; } }>Sugeneruoti rinkinį</button></>
             /*)*/}
             <br />
             <br />
