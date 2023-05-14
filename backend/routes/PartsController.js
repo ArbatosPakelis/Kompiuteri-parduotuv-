@@ -46,7 +46,7 @@ function getSQLParameters(iranga) {
             table = "atmintis"
             break
         case "Kompiuterio pele":
-            columns = "(`laidine`, `id_Pele`)"
+            columns = "(`laidine`, `id_Kompiuterio_pele`)"
             table = "kompiuterio_pele"
             break
         case "Kabelis":
@@ -103,34 +103,34 @@ function getSQLPartsType(type) {
 function getTypesForRecommendation(type){
     let value = [];
     switch (type){
-        case "Motinine plokste":
+        case "motinine_plokste":
             value = ['Atmintis', 'Procesorius', 'Vaizdo plokste']
             break
-        case "Vaizdo plokste":
+        case "vaizdo_plokste":
             value = ['Motinine plokste', 'Monitorius', 'Maitinimo blokas']
             break
-        case "Procesorius":
+        case "procesorius":
             value = ['Atmintis', 'Motinine plokste', 'Isorine atmintis']
             break
-        case "Monitorius":
+        case "monitorius":
             value = ['Vaizdo plokste', 'Kompiuterio pele', 'Klaviatura']
             break
-        case "Maitinimo blokas":
+        case "maitinimo_blokas":
             value = ['Kabelis', 'Ausintuvas', 'Motinine plokste']
             break
-        case "Klaviatura":
+        case "klaviatura":
             value = ['Kabelis', 'Kompiuterio pele', 'Monitorius']
             break
-        case "Ausintuvas":
+        case "ausintuvas":
             value = ['Motinine plokste', 'Atmintis', 'Maitinimo blokas']
             break
-        case "Atmintis":
+        case "atmintis":
             value = ['Isorine atmintis', 'Motinine plokste', 'Procesorius']
             break
-        case "Kompiuterio pele":
+        case "kompiuterio_pele":
             value = ['Klaviatura', 'Kabelis', 'Monitorius']
             break
-        case "Kabelis":
+        case "kabelis":
             value = ['Isorine atmintis', 'Maitinimo blokas', 'Monitorius']
             break
     }
@@ -182,7 +182,11 @@ const getPart = (req, res) => {
                 if (rows.length === 0) {
                     return res.status(404).send('NotFound');
                 }
-                res.send(rows);
+                const type = getSQLParameters(rows[0].tipas)
+                const tipas = [type[1]]
+                const array = [...rows, ...tipas]
+
+                res.send(array);
             }
         );
     });
@@ -207,7 +211,7 @@ const duplicationCheck = (req, res) => {
                 if (error) {
                     return res.status(500).send('Internal Server Error');
                 }
-                const ans = rows.length > 1;
+                const ans = rows.length > 0;
                 res.status(200).json({
                     status: 'success',
                     ans: ans,
@@ -226,6 +230,7 @@ const getPartSpec = (req, res) => {
         }
         let tipas = req.params.tipas;
         let id = req.params.id;
+
         const sql =
             'SELECT * FROM ' +
             tipas.toLowerCase() +
@@ -238,9 +243,6 @@ const getPartSpec = (req, res) => {
             connection.release();
             if (error) {
                 return res.status(500).send(error);
-            }
-            if (Object.keys(rows).length === 0) {
-                return res.status(404).json({ error: 'NotFound' });
             }
             res.send(rows)
         });
