@@ -167,8 +167,7 @@ export default function PartsEdit() {
                 </Form.Field>
                 <Button onClick={setNewData} type='submit'>Atnaujinti</Button>
             </Form>
-
-            <br/><button className='grizti' href='/detales?tipas=all'>Grįžti</button>
+            <br/><br/><button className='grizti' onClick={() => {window.location.href = '/detales?tipas=all'}}>Grįžti</button><br/><br/>
         </div>
     )
 }
