@@ -22,7 +22,7 @@ export default function NavBar(){
                             <li><Link to="/detales?tipas=kabelis">Kabelis</Link></li>
                         </ul>
                     </li>
-                    <li>Rinkiniai</li>
+                    <li><Link to="/rinkiniai">Rinkiniai</Link></li>
                 </ul>
             </nav>
             <div className="logo">

@@ -175,6 +175,27 @@ const updateComputerSet = (req, res) => {
   });
 }
 
+const checkComputerSetDuplication= (req, res) => {
+  pool.getConnection((err, connection) => {
+    if (err) throw err;
+    let sqlQuery = 'SELECT count(pavadinimas) from kompiuterio_rinkinys WHERE kompiuterio_rinkinys.pavadinimas=\'' + req.query.pavadinimas + `\';`;
+
+    connection.query(sqlQuery, (err, rows) => {
+      if (err) {
+        console.log(err);
+        connection.release(); // Release the connection back to the pool in case of an error
+        return;
+      }
+
+      res.status(200).json({
+        ans:rows[0][`count(pavadinimas)`],
+      });
+      connection.release(); // Release the connection back to the pool after sending the response
+    });
+  });
+}
+
+// get ALLLLLL sets
 const getComputerSets= (req, res) => {
   pool.getConnection((err, connection) => {
     if (err) throw err;
@@ -189,6 +210,39 @@ const getComputerSets= (req, res) => {
       }
 
       res.send(rows);
+      connection.release(); // Release the connection back to the pool after sending the response
+    });
+  });
+}
+
+// get ONE set
+const getComputerSet= (req, res) => {
+  pool.getConnection((err, connection) => {
+    if (err) throw err;
+    let sqlQuery = `SELECT detale.* from kompiuterio_rinkinys 
+    LEFT JOIN rinkinio_detale on rinkinio_detale.fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=kompiuterio_rinkinys.id_Kompiuterio_rinkinys
+    LEFT JOIN detale ON rinkinio_detale.fk_Detaleid_Detale=detale.id_Detale 
+    WHERE id_Kompiuterio_rinkinys=`+ req.query.id_Kompiuterio_rinkinys + `;`;
+
+    connection.query(sqlQuery, (err, rows) => {
+      if (err) {
+        console.log(err);
+        connection.release(); // Release the connection back to the pool in case of an error
+        return;
+      }
+        let sqlQuery1 = `SELECT * from kompiuterio_rinkinys WHERE id_Kompiuterio_rinkinys=`+ req.query.id_Kompiuterio_rinkinys + `;`;
+        ans = []
+        connection.query(sqlQuery1, (err, rows1) => {
+        if (err) {
+          console.log(err);
+          connection.release(); // Release the connection back to the pool in case of an error
+          return;
+        }
+          res.status(200).json({
+            ans: rows1,
+            rows: rows,
+          });
+        });
       connection.release(); // Release the connection back to the pool after sending the response
     });
   });
@@ -260,4 +314,6 @@ module.exports = {
     deleteComputerSet,
     removeComputerSetPart,
     updateComputerSet,
+    checkComputerSetDuplication,
+    getComputerSet,
 }
