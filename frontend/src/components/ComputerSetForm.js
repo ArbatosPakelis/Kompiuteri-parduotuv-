@@ -42,6 +42,7 @@ export default function ComputerSetForm() {
 
     //     getData();
     // }, []);
+    
     const magic = async () => {
         const setApi = new ComputerSetApi();
         const response = await setApi.compatibility(id);
@@ -82,6 +83,7 @@ export default function ComputerSetForm() {
           setCooler(partsData.find((part) => part.tipas === 'Ausintuvas'));
         }
       }, [partsData]);
+      
 
     if (loading) {
         return <div>Loading...</div>; // Render a loading state while data is being fetched
