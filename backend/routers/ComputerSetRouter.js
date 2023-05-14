@@ -7,6 +7,7 @@ router.get('/compatibility', computerSet.compatibility);
 router.get('/getComputerSets', computerSet.getComputerSets);
 router.get('/checkComputerSetDuplication', computerSet.checkComputerSetDuplication);
 router.get('/getComputerSet', computerSet.getComputerSet);
+router.get('/generateComputer', computerSet.generateComputer);
 router.post('/addComputerSet', computerSet.addComputerSet);
 router.post('/updateComputerSet', computerSet.updateComputerSet);
 router.delete('/unlinkPartFromBuild', computerSet.unlinkPartFromBuild);

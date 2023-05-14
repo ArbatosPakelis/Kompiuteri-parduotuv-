@@ -122,7 +122,7 @@ const compatibility = async (req, res) => {
             res.json({ id });
         }
         else if (err.errno === 1062) {
-            res.send('douplicate entry, try to think of new id')
+            res.send('duplicate entry, try to think of new id')
         }
         else {
             console.log(err)
@@ -164,7 +164,7 @@ const updateComputerSet = (req, res) => {
           res.json({ id });
       }
       else if (err.errno === 1062) {
-          res.send('douplicate entry, try to think of new id')
+          res.send('duplicate entry, try to think of new id')
       }
       else {
           console.log(err)
@@ -306,6 +306,174 @@ const removeComputerSetPart= (req, res) => {
   });
 }
 
+
+const generateComputer = async (req, res) => {
+  try {
+    const connection = await new Promise((resolve, reject) => {
+      pool.getConnection((err, connection) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(connection);
+        }
+      });
+    });
+
+    const maxPrice = req.query.type === 'browsing' ? 300 : req.query.type === 'studying' ? 600 : Number.MAX_SAFE_INTEGER;
+    let cpuSocket, ramGen, pcieStand, m2Count, sataCount;
+
+    let motherboard = [
+      {
+        type: 'Motinine plokste',
+        price: maxPrice * 0.10,
+        sql: `SELECT detale.*, motinine_plokste.*
+        FROM detale
+        JOIN motinine_plokste ON detale.id_Detale = motinine_plokste.id_MotPlokste
+        WHERE detale.tipas = 'Motinine plokste'
+        AND detale.kaina <= ?
+        ORDER BY detale.kaina DESC, motinine_plokste.RAM_karta DESC
+        LIMIT 1
+        `
+      }
+    ];
+
+    const promises2 = motherboard.map(c => new Promise((resolve, reject) => {
+      connection.query(c.sql, [c.price], (error, rows) => {
+        if (error) {
+          reject(error);
+        } else {
+            cpuSocket = rows[0].CPU_lizdo_standartas;
+            ramGen = rows[0].RAM_karta;
+            pcieStand = rows[0].PCIe_standartas;
+          resolve({ type: c.type, details: rows[0] });
+        }
+      });
+    }));
+    
+    // Run the second set of promises (motherboard)
+    const resultsMotherboard = await Promise.all(promises2);
+
+    let components = [
+      {
+        type: 'Procesorius',
+        price: maxPrice * 0.20,
+        parameters: ['price', 'cpuSocket'],
+        sql: `SELECT detale.*, procesorius.*
+        FROM detale JOIN procesorius ON detale.id_Detale = procesorius.id_Procesorius
+        WHERE detale.tipas = 'Procesorius' AND detale.kaina <= ? AND procesorius.CPU_lizdo_standartas = ? ORDER BY detale.kaina DESC,
+        procesorius.branduoliu_kiekis DESC,
+        procesorius.daznis DESC LIMIT 1`
+      },
+      {
+        type: 'Atmintis',
+        price: maxPrice * 0.10,
+        parameters: ['price', 'ramGen'],
+        sql: `SELECT detale.*, atmintis.*
+        FROM detale JOIN atmintis ON detale.id_Detale = atmintis.id_Atmintis
+        WHERE detale.tipas = 'Atmintis' AND detale.kaina <= ? AND atmintis.RAM_karta = ? ORDER BY detale.kaina DESC,
+        atmintis.talpa DESC,
+        atmintis.daznis DESC LIMIT 1`
+      },
+      {
+        type: 'Vaizdo plokste',
+        price: maxPrice * 0.25,
+        parameters: ['price', 'pcieStand'],
+        sql: `SELECT detale.*, vaizdo_plokste.*
+        FROM detale JOIN vaizdo_plokste ON detale.id_Detale = vaizdo_plokste.id_Plokste
+        WHERE detale.tipas = 'Vaizdo Plokste' AND detale.kaina <= ? AND vaizdo_plokste.PCIe_standartas = ? ORDER BY detale.kaina DESC,
+        vaizdo_plokste.VRAM_kiekis DESC,
+        vaizdo_plokste.VRAM_daznis DESC LIMIT 1`
+      },
+      {
+        type: 'Isorine atmintis',
+        price: maxPrice * 0.05,
+        parameters: ['price'],
+        sql: `SELECT detale.*, isorine_atmintis.*
+        FROM detale JOIN isorine_atmintis ON detale.id_Detale = isorine_atmintis.id_Atmintis
+        WHERE detale.tipas = 'Isorine atmintis' AND detale.kaina <= ? ORDER BY detale.kaina DESC,
+        isorine_atmintis.skaitymo_greitis DESC LIMIT 1`
+      },
+      {
+        type: 'Maitinimo blokas',
+        price: maxPrice * 0.10,
+        parameters: ['price'],
+        sql: `SELECT detale.*, maitinimo_blokas.*
+        FROM detale JOIN maitinimo_blokas ON detale.id_Detale = maitinimo_blokas.id_Blokas
+        WHERE detale.tipas = 'Maitinimo blokas' AND detale.kaina <= ? ORDER BY detale.kaina DESC,
+        maitinimo_blokas.galia DESC LIMIT 1`
+      },
+      {
+        type: 'Monitorius',
+        price: maxPrice * 0.10,
+        parameters: ['price'],
+        sql: `SELECT detale.*, monitorius.*
+        FROM detale JOIN monitorius ON detale.id_Detale = monitorius.id_Monitorius
+        WHERE detale.tipas = 'Monitorius' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 1`
+      },
+      {
+        type: 'Ausintuvas',
+        price: maxPrice * 0.05,
+        parameters: ['price'],
+        sql: `SELECT detale.*, ausintuvas.*
+        FROM detale JOIN ausintuvas ON detale.id_Detale = ausintuvas.id_Ausintuvas
+        WHERE detale.tipas = 'Ausintuvas' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 1`
+      },
+      {
+        type: 'Pele',
+        price: maxPrice * 0.02,
+        parameters: ['price'],
+        sql: `SELECT detale.*, kompiuterio_pele.*
+        FROM detale JOIN kompiuterio_pele ON detale.id_Detale = kompiuterio_pele.id_Pele
+        WHERE detale.tipas = 'Kompiuterio pele' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 1`
+      },
+      {
+        type: 'Klaviatura',
+        price: maxPrice * 0.03,
+        parameters: ['price'],
+        sql: `SELECT detale.*, klaviatura.*
+        FROM detale JOIN klaviatura ON detale.id_Detale = klaviatura.id_Klaviatura
+        WHERE detale.tipas = 'Klaviatura' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 1`
+      },
+
+      //monitor, mouse, kb, cooler, power supply
+    ];
+    const mboardparameters = {
+      cpuSocket, 
+      ramGen, 
+      pcieStand, 
+      m2Count, 
+      sataCount
+    };
+    
+    const promises = components.map(c => new Promise((resolve, reject) => {
+      const queryParams = c.parameters.map(p => p === 'price' ? c.price : mboardparameters[p]);
+    
+      console.log('Executing query for:', c.type);
+      console.log('Parameters:', queryParams);
+    
+      connection.query(c.sql, queryParams, (error, rows) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve({ type: c.type, details: rows[0] });
+        }
+      });
+    }));
+
+    const resultsWithoutMotherboard = await Promise.all(promises);
+
+    const results = [...resultsMotherboard, ...resultsWithoutMotherboard];
+    console.log(results);
+
+    res.status(200).json(results);
+
+    connection.release();
+  } catch (err) {
+    res.status(500).send(err);
+  }
+};
+
+
 module.exports = {
     compatibility,
     addComputerSet,
@@ -316,4 +484,5 @@ module.exports = {
     updateComputerSet,
     checkComputerSetDuplication,
     getComputerSet,
+    generateComputer,
 }

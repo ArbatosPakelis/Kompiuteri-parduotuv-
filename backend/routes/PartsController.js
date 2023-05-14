@@ -347,6 +347,7 @@ const addPart = (req, res) => {
                 res.setHeader("Set-Cookie", "partMessage=successADD; Max-Age=3");
                 res.json({ id });
             } else if (err.errno === 1062) {
+                console.log(err);
                 res.send("duplicate entry, try to think of a new id");
             } else {
                 console.log(err);

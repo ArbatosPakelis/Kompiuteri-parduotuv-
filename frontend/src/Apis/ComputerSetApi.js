@@ -16,5 +16,8 @@ export default class ComputerSetApi extends Api {
     compatibility = (id_Kompiuterio_rinkinys) => {
         return super.init().get(`/computerSet/compatibility?id=${id_Kompiuterio_rinkinys}`);
     };
+    generateSet = (tipas) => {
+        return super.init().get(`/computerSet/generateComputer?type=${tipas}`);
+    };
 
 }
