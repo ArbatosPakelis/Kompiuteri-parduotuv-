@@ -319,21 +319,18 @@ const generateComputer = async (req, res) => {
       });
     });
 
-    const maxPrice = req.query.type === 'browsing' ? 300 : req.query.type === 'studying' ? 600 : Number.MAX_SAFE_INTEGER;
+    const maxPrice = req.query.type === 'browsing' ? 300 : req.query.type === 'studying' ? 600 : req.query.type === 'gaming' ? Number.MAX_SAFE_INTEGER : 0;
     let cpuSocket, ramGen, pcieStand, m2Count, sataCount;
-
     let motherboard = [
       {
         type: 'Motinine plokste',
         price: maxPrice * 0.10,
         sql: `SELECT detale.*, motinine_plokste.*
         FROM detale
-        JOIN motinine_plokste ON detale.id_Detale = motinine_plokste.id_MotPlokste
+        JOIN motinine_plokste ON detale.id_Detale = motinine_plokste.id_Motinine_plokste
         WHERE detale.tipas = 'Motinine plokste'
         AND detale.kaina <= ?
-        ORDER BY detale.kaina DESC, motinine_plokste.RAM_karta DESC
-        LIMIT 1
-        `
+        ORDER BY detale.kaina DESC, motinine_plokste.RAM_karta DESC`
       }
     ];
 
@@ -345,12 +342,11 @@ const generateComputer = async (req, res) => {
             cpuSocket = rows[0].CPU_lizdo_standartas;
             ramGen = rows[0].RAM_karta;
             pcieStand = rows[0].PCIe_standartas;
-          resolve({ type: c.type, details: rows[0] });
+          resolve({ type: c.type, details: rows[Math.floor(Math.random() * rows.length)] });
         }
       });
     }));
     
-    // Run the second set of promises (motherboard)
     const resultsMotherboard = await Promise.all(promises2);
 
     let components = [
@@ -359,10 +355,10 @@ const generateComputer = async (req, res) => {
         price: maxPrice * 0.20,
         parameters: ['price', 'cpuSocket'],
         sql: `SELECT detale.*, procesorius.*
-        FROM detale JOIN procesorius ON detale.id_Detale = procesorius.id_Procesorius
+        FROM detale INNER JOIN procesorius ON detale.id_Detale = procesorius.id_Procesorius
         WHERE detale.tipas = 'Procesorius' AND detale.kaina <= ? AND procesorius.CPU_lizdo_standartas = ? ORDER BY detale.kaina DESC,
         procesorius.branduoliu_kiekis DESC,
-        procesorius.daznis DESC LIMIT 1`
+        procesorius.daznis DESC`
       },
       {
         type: 'Atmintis',
@@ -372,35 +368,35 @@ const generateComputer = async (req, res) => {
         FROM detale JOIN atmintis ON detale.id_Detale = atmintis.id_Atmintis
         WHERE detale.tipas = 'Atmintis' AND detale.kaina <= ? AND atmintis.RAM_karta = ? ORDER BY detale.kaina DESC,
         atmintis.talpa DESC,
-        atmintis.daznis DESC LIMIT 1`
+        atmintis.daznis DESC`
       },
       {
         type: 'Vaizdo plokste',
-        price: maxPrice * 0.25,
+        price: maxPrice * 0.20,
         parameters: ['price', 'pcieStand'],
         sql: `SELECT detale.*, vaizdo_plokste.*
-        FROM detale JOIN vaizdo_plokste ON detale.id_Detale = vaizdo_plokste.id_Plokste
-        WHERE detale.tipas = 'Vaizdo Plokste' AND detale.kaina <= ? AND vaizdo_plokste.PCIe_standartas = ? ORDER BY detale.kaina DESC,
+        FROM detale JOIN vaizdo_plokste ON detale.id_Detale = vaizdo_plokste.id_Vaizdo_plokste
+        WHERE detale.tipas = 'Vaizdo Plokste' AND detale.kaina <= ? ORDER BY detale.kaina DESC,
         vaizdo_plokste.VRAM_kiekis DESC,
-        vaizdo_plokste.VRAM_daznis DESC LIMIT 1`
+        vaizdo_plokste.VRAM_daznis DESC`
       },
       {
         type: 'Isorine atmintis',
-        price: maxPrice * 0.05,
+        price: maxPrice * 0.10,
         parameters: ['price'],
         sql: `SELECT detale.*, isorine_atmintis.*
-        FROM detale JOIN isorine_atmintis ON detale.id_Detale = isorine_atmintis.id_Atmintis
+        FROM detale JOIN isorine_atmintis ON detale.id_Detale = isorine_atmintis.id_Isorine_atmintis
         WHERE detale.tipas = 'Isorine atmintis' AND detale.kaina <= ? ORDER BY detale.kaina DESC,
-        isorine_atmintis.skaitymo_greitis DESC LIMIT 1`
+        isorine_atmintis.skaitymo_greitis DESC`
       },
       {
         type: 'Maitinimo blokas',
         price: maxPrice * 0.10,
         parameters: ['price'],
         sql: `SELECT detale.*, maitinimo_blokas.*
-        FROM detale JOIN maitinimo_blokas ON detale.id_Detale = maitinimo_blokas.id_Blokas
+        FROM detale JOIN maitinimo_blokas ON detale.id_Detale = maitinimo_blokas.id_Maitinimo_blokas
         WHERE detale.tipas = 'Maitinimo blokas' AND detale.kaina <= ? ORDER BY detale.kaina DESC,
-        maitinimo_blokas.galia DESC LIMIT 1`
+        maitinimo_blokas.galia DESC`
       },
       {
         type: 'Monitorius',
@@ -408,7 +404,7 @@ const generateComputer = async (req, res) => {
         parameters: ['price'],
         sql: `SELECT detale.*, monitorius.*
         FROM detale JOIN monitorius ON detale.id_Detale = monitorius.id_Monitorius
-        WHERE detale.tipas = 'Monitorius' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 1`
+        WHERE detale.tipas = 'Monitorius' AND detale.kaina <= ? ORDER BY detale.kaina DESC`
       },
       {
         type: 'Ausintuvas',
@@ -416,14 +412,14 @@ const generateComputer = async (req, res) => {
         parameters: ['price'],
         sql: `SELECT detale.*, ausintuvas.*
         FROM detale JOIN ausintuvas ON detale.id_Detale = ausintuvas.id_Ausintuvas
-        WHERE detale.tipas = 'Ausintuvas' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 1`
+        WHERE detale.tipas = 'Ausintuvas' AND detale.kaina <= ? ORDER BY detale.kaina DESC`
       },
       {
         type: 'Pele',
         price: maxPrice * 0.02,
         parameters: ['price'],
         sql: `SELECT detale.*, kompiuterio_pele.*
-        FROM detale JOIN kompiuterio_pele ON detale.id_Detale = kompiuterio_pele.id_Pele
+        FROM detale JOIN kompiuterio_pele ON detale.id_Detale = kompiuterio_pele.id_Kompiuterio_pele
         WHERE detale.tipas = 'Kompiuterio pele' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 1`
       },
       {
@@ -435,14 +431,12 @@ const generateComputer = async (req, res) => {
         WHERE detale.tipas = 'Klaviatura' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 1`
       },
 
-      //monitor, mouse, kb, cooler, power supply
+      //order by descending, randomized array every single time
     ];
     const mboardparameters = {
       cpuSocket, 
       ramGen, 
-      pcieStand, 
-      m2Count, 
-      sataCount
+      pcieStand 
     };
     
     const promises = components.map(c => new Promise((resolve, reject) => {
@@ -455,7 +449,7 @@ const generateComputer = async (req, res) => {
         if (error) {
           reject(error);
         } else {
-          resolve({ type: c.type, details: rows[0] });
+          resolve({ type: c.type, details: rows[Math.floor(Math.random() * rows.length)] });
         }
       });
     }));
