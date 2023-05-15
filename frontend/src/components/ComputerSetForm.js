@@ -17,32 +17,6 @@ export default function ComputerSetForm() {
     const [loading, setLoading] = useState(true); // New loading state
     const [problems, setProblems] = useState(null);
     const [success, setSuccess] = useState(false);
-    // useEffect(() => {
-    //     const getData = async () => {
-    //         try {
-    //             const setApi = new ComputerSetApi();
-    //             const response = await setApi.getComputerSet(id);
-    //             setComputerSet(response.data.ans);
-    //             setpartsData(response.data.rows);
-    //             setMotherboard(partsData.find(a => a.tipas === 'Motinine plokste'));
-    //             setCpu(partsData.find(b => b.tipas === 'Procesorius'));
-    //             setRam(partsData.find(c => c.tipas === 'Atmintis'));
-    //             setGpu(partsData.find(d => d.tipas === 'Vaizdo plokste'));
-    //             setDataDisk(partsData.find(e => e.tipas === 'Isorine atmintis'));
-    //             setPowerSupply(partsData.find(f => f.tipas === 'Maitinimo blokas'));
-    //             setCooler(partsData.find(f => f.tipas === 'Ausintuvas'));
-    //             setLoading(false); // Set loading to false once data is fetched
-    //         } catch (err) {
-    //             console.log(err.response.data.message)
-    //             setComputerSet(null);
-    //             setpartsData(null);
-    //             setLoading(false); // Set loading to false in case of an error
-    //         }
-    //     };
-
-    //     getData();
-    // }, []);
-    
     const magic = async () => {
         const setApi = new ComputerSetApi();
         const response = await setApi.compatibility(id);
@@ -52,38 +26,45 @@ export default function ComputerSetForm() {
         }
 
     }
+    const [totalPrice, setTotalPrice] = useState(0);
 
+    // Update total price whenever the components change
     useEffect(() => {
-        const fetchData = async () => {
-          try {
-            const setApi = new ComputerSetApi();
-            const response = await setApi.getComputerSet(id);
-            const { ans, rows } = response.data;
-            setComputerSet(ans);
-            setpartsData(rows);
-            setLoading(false);
-          } catch (err) {
-            console.log(err.response.data.message);
-            setComputerSet(null);
-            setLoading(false);
-          }
-        };
+      const parts = [motherboard, cpu, ram, gpu, dataDisk, powerSuply, cooler];
+      const price = parts.reduce((sum, part) => sum + (part ? part.kaina : 0), 0);
+      setTotalPrice(price);
+    }, [motherboard, cpu, ram, gpu, dataDisk, powerSuply, cooler]);
+    useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const setApi = new ComputerSetApi();
+        const response = await setApi.getComputerSet(id);
+        const { ans, rows } = response.data;
+        setComputerSet(ans);
+        setpartsData(rows);
+
+        // Move the logic of setting individual part states here
+        setMotherboard(rows.find((part) => part.tipas === 'Motinine plokste'));
+        setCpu(rows.find((part) => part.tipas === 'Procesorius'));
+        setRam(rows.find((part) => part.tipas === 'Atmintis'));
+        setGpu(rows.find((part) => part.tipas === 'Vaizdo plokste'));
+        setDataDisk(rows.find((part) => part.tipas === 'Isorine atmintis'));
+        setPowerSupply(rows.find((part) => part.tipas === 'Maitinimo blokas'));
+        setCooler(rows.find((part) => part.tipas === 'Ausintuvas'));
+
+        setLoading(false);
+      } catch (err) {
+        console.log(err.response.data.message);
+        setComputerSet(null);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
     
-        fetchData();
-      }, [id]);
-    
-      useEffect(() => {
-        if (partsData) {
-          setMotherboard(partsData.find((part) => part.tipas === 'Motinine plokste'));
-          setCpu(partsData.find((part) => part.tipas === 'Procesorius'));
-          setRam(partsData.find((part) => part.tipas === 'Atmintis'));
-          setGpu(partsData.find((part) => part.tipas === 'Vaizdo plokste'));
-          setDataDisk(partsData.find((part) => part.tipas === 'Isorine atmintis'));
-          setPowerSupply(partsData.find((part) => part.tipas === 'Maitinimo blokas'));
-          setCooler(partsData.find((part) => part.tipas === 'Ausintuvas'));
-        }
-      }, [partsData]);
-      
+
 
     if (loading) {
         return <div>Loading...</div>; // Render a loading state while data is being fetched
@@ -91,8 +72,12 @@ export default function ComputerSetForm() {
     
     return (
             <div style={{ alignContent:'center', paddingLeft:100}}>
-                    <center><h2 style={{paddingBottom:50, paddingTop:50}}> {computerSetData ? computerSetData[0].pavadinimas : 'Loading...'}</h2></center>
-                
+                    <center>
+                        <h2 style={{paddingBottom:50, paddingTop:50}}>
+                            {computerSetData ? computerSetData[0].pavadinimas : 'Loading...'}
+                        </h2>
+                        <h3>Viso rinkinio kaina: {totalPrice.toFixed(2)}</h3>
+                    </center>
                     <div style={{display:'inline-block', width:'60%'}}>
                         <ul>
                             <li style={{marginTop:30, display:'flex'}}>

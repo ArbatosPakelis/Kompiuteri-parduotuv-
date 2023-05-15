@@ -4,7 +4,7 @@ const mysql = require('mysql')
 const app = express();
 
 const pool  = mysql.createPool({
-    connectionLimit : 10,
+    connectionLimit : 20,
     host            : 'localhost',
     user            : 'root',
     password        :  null,
@@ -174,6 +174,46 @@ const updateComputerSet = (req, res) => {
       });
   });
 }
+const generateToComputerSetForm = async (req, res) => {
+  const { fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys, fk_Detaleid_Detale } = req.query; // Destructure the parameters from the URL query string
+  
+  try {
+    const connection = await getConnectionFromPool(); // Get a database connection from the pool
+
+    const sql = 'INSERT INTO rinkinio_detale (kiekis, fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys, fk_Detaleid_Detale) VALUES (?, ?, ?)';
+    const result = await executeQuery(connection, sql, [1, fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys, fk_Detaleid_Detale]);
+    
+    connection.release(); // Release the database connection
+
+    res.setHeader('Set-Cookie', 'partMessage=successADD; Max-Age=3');
+    res.json({ message: 'Success', result });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+};
+
+
+
+const getConnectionFromPool = () => {
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, connection) => {
+      if (err) reject(err);
+      else resolve(connection);
+    });
+  });
+};
+
+const executeQuery = (connection, sql, params) => {
+  return new Promise((resolve, reject) => {
+    connection.query(sql, params, (err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
+};
+
+
 
 const checkComputerSetDuplication= (req, res) => {
   pool.getConnection((err, connection) => {
@@ -320,11 +360,13 @@ const generateComputer = async (req, res) => {
     });
 
     const maxPrice = req.query.type === 'browsing' ? 300 : req.query.type === 'studying' ? 600 : req.query.type === 'gaming' ? Number.MAX_SAFE_INTEGER : 0;
-    let cpuSocket, ramGen, pcieStand, m2Count, sataCount;
+    let cpuSocket, ramGen, pcieStand;
+    let gamingMinPrice=650;
     let motherboard = [
       {
         type: 'Motinine plokste',
         price: maxPrice * 0.10,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? maxPrice * 0.10 * 0.5 : gamingMinPrice * 0.10,
         sql: `SELECT detale.*, motinine_plokste.*
         FROM detale
         JOIN motinine_plokste ON detale.id_Detale = motinine_plokste.id_Motinine_plokste
@@ -339,13 +381,15 @@ const generateComputer = async (req, res) => {
         if (error) {
           reject(error);
         } else {
-            cpuSocket = rows[0].CPU_lizdo_standartas;
-            ramGen = rows[0].RAM_karta;
-            pcieStand = rows[0].PCIe_standartas;
-          resolve({ type: c.type, details: rows[Math.floor(Math.random() * rows.length)] });
+          const selectedRow = rows[0]; // Choose the desired row based on your criteria
+          cpuSocket = selectedRow.CPU_lizdo_standartas;
+          ramGen = selectedRow.RAM_karta;
+          pcieStand = selectedRow.PCIe_standartas;
+          resolve({ type: c.type, details: selectedRow });
         }
       });
     }));
+    
     
     const resultsMotherboard = await Promise.all(promises2);
 
@@ -353,70 +397,78 @@ const generateComputer = async (req, res) => {
       {
         type: 'Procesorius',
         price: maxPrice * 0.20,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? maxPrice * 0.20 * 0.5 : gamingMinPrice * 0.20,
         parameters: ['price', 'cpuSocket'],
         sql: `SELECT detale.*, procesorius.*
         FROM detale INNER JOIN procesorius ON detale.id_Detale = procesorius.id_Procesorius
         WHERE detale.tipas = 'Procesorius' AND detale.kaina <= ? AND procesorius.CPU_lizdo_standartas = ? ORDER BY detale.kaina DESC,
         procesorius.branduoliu_kiekis DESC,
-        procesorius.daznis DESC`
+        procesorius.daznis DESC LIMIT 3`
       },
       {
         type: 'Atmintis',
         price: maxPrice * 0.10,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? 0 : gamingMinPrice * 0.10,
         parameters: ['price', 'ramGen'],
         sql: `SELECT detale.*, atmintis.*
         FROM detale JOIN atmintis ON detale.id_Detale = atmintis.id_Atmintis
         WHERE detale.tipas = 'Atmintis' AND detale.kaina <= ? AND atmintis.RAM_karta = ? ORDER BY detale.kaina DESC,
         atmintis.talpa DESC,
-        atmintis.daznis DESC`
+        atmintis.daznis DESC LIMIT 3`
       },
       {
         type: 'Vaizdo plokste',
         price: maxPrice * 0.20,
-        parameters: ['price', 'pcieStand'],
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? maxPrice * 0.20 * 0.5 : gamingMinPrice * 0.20,
+        parameters: ['price'],
         sql: `SELECT detale.*, vaizdo_plokste.*
         FROM detale JOIN vaizdo_plokste ON detale.id_Detale = vaizdo_plokste.id_Vaizdo_plokste
         WHERE detale.tipas = 'Vaizdo Plokste' AND detale.kaina <= ? ORDER BY detale.kaina DESC,
         vaizdo_plokste.VRAM_kiekis DESC,
-        vaizdo_plokste.VRAM_daznis DESC`
+        vaizdo_plokste.VRAM_daznis DESC LIMIT 3`
       },
       {
         type: 'Isorine atmintis',
         price: maxPrice * 0.10,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? maxPrice * 0.10 * 0.5 : gamingMinPrice * 0.10,
         parameters: ['price'],
         sql: `SELECT detale.*, isorine_atmintis.*
         FROM detale JOIN isorine_atmintis ON detale.id_Detale = isorine_atmintis.id_Isorine_atmintis
         WHERE detale.tipas = 'Isorine atmintis' AND detale.kaina <= ? ORDER BY detale.kaina DESC,
-        isorine_atmintis.skaitymo_greitis DESC`
+        isorine_atmintis.skaitymo_greitis DESC LIMIT 3`
       },
       {
         type: 'Maitinimo blokas',
         price: maxPrice * 0.10,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? maxPrice * 0.10 * 0.5 : gamingMinPrice * 0.10,
         parameters: ['price'],
         sql: `SELECT detale.*, maitinimo_blokas.*
         FROM detale JOIN maitinimo_blokas ON detale.id_Detale = maitinimo_blokas.id_Maitinimo_blokas
         WHERE detale.tipas = 'Maitinimo blokas' AND detale.kaina <= ? ORDER BY detale.kaina DESC,
-        maitinimo_blokas.galia DESC`
+        maitinimo_blokas.galia DESC LIMIT 3`
       },
       {
         type: 'Monitorius',
         price: maxPrice * 0.10,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? maxPrice * 0.10 * 0.5 : gamingMinPrice * 0.10,
         parameters: ['price'],
         sql: `SELECT detale.*, monitorius.*
         FROM detale JOIN monitorius ON detale.id_Detale = monitorius.id_Monitorius
-        WHERE detale.tipas = 'Monitorius' AND detale.kaina <= ? ORDER BY detale.kaina DESC`
+        WHERE detale.tipas = 'Monitorius' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 3`
       },
       {
         type: 'Ausintuvas',
         price: maxPrice * 0.05,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? 0 : gamingMinPrice * 0.05,
         parameters: ['price'],
         sql: `SELECT detale.*, ausintuvas.*
         FROM detale JOIN ausintuvas ON detale.id_Detale = ausintuvas.id_Ausintuvas
-        WHERE detale.tipas = 'Ausintuvas' AND detale.kaina <= ? ORDER BY detale.kaina DESC`
+        WHERE detale.tipas = 'Ausintuvas' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 3`
       },
       {
         type: 'Pele',
         price: maxPrice * 0.02,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? 0 : gamingMinPrice * 0.02,
         parameters: ['price'],
         sql: `SELECT detale.*, kompiuterio_pele.*
         FROM detale JOIN kompiuterio_pele ON detale.id_Detale = kompiuterio_pele.id_Kompiuterio_pele
@@ -425,11 +477,12 @@ const generateComputer = async (req, res) => {
       {
         type: 'Klaviatura',
         price: maxPrice * 0.03,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? 0 : gamingMinPrice * 0.03,
         parameters: ['price'],
         sql: `SELECT detale.*, klaviatura.*
         FROM detale JOIN klaviatura ON detale.id_Detale = klaviatura.id_Klaviatura
         WHERE detale.tipas = 'Klaviatura' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 1`
-      },
+      }
 
       //order by descending, randomized array every single time
     ];
@@ -444,12 +497,20 @@ const generateComputer = async (req, res) => {
     
       console.log('Executing query for:', c.type);
       console.log('Parameters:', queryParams);
+      console.log(c.minPrice);
     
       connection.query(c.sql, queryParams, (error, rows) => {
         if (error) {
           reject(error);
         } else {
-          resolve({ type: c.type, details: rows[Math.floor(Math.random() * rows.length)] });
+          // Filter the rows based on the minPrice
+          const filteredRows = rows.filter(row => row.kaina >= c.minPrice);
+          
+          // Pick a random element from the filteredRows
+          const randomIndex = Math.floor(Math.random() * filteredRows.length);
+          const randomElement = filteredRows[randomIndex];
+    
+          resolve({ type: c.type, details: randomElement });
         }
       });
     }));
@@ -479,4 +540,5 @@ module.exports = {
     checkComputerSetDuplication,
     getComputerSet,
     generateComputer,
+    generateToComputerSetForm,
 }
