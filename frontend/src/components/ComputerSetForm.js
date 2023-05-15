@@ -20,6 +20,8 @@ export default function ComputerSetForm() {
     const [loading, setLoading] = useState(true); // New loading state
     const [problems, setProblems] = useState(null);
     const [success, setSuccess] = useState(false);
+    const [totalPrice, setTotalPrice] = useState(0);
+
     const magic = async () => {
         const setApi = new ComputerSetApi();
         const response = await setApi.compatibility(id);
@@ -29,7 +31,8 @@ export default function ComputerSetForm() {
         }
 
     }
-    const [totalPrice, setTotalPrice] = useState(0);
+
+    
 
     // Update total price whenever the components change
     useEffect(() => {
@@ -69,8 +72,14 @@ export default function ComputerSetForm() {
     fetchData();
   }, [id]);
 
-    
-
+    async function onClick(someID, otherID) {
+        const setApi = new ComputerSetApi();
+        if(typeof someID == 'number' || typeof otherID == 'number'){
+            const response = await setApi.unlinkPartFromBuild(someID, otherID);
+        }
+        // eslint-disable-next-line no-restricted-globals
+        location.reload();
+    }
 
     if (loading) {
         return <div>Loading...</div>; // Render a loading state while data is being fetched
@@ -93,7 +102,7 @@ export default function ComputerSetForm() {
                                     <p>
                                         {cpu.pavadinimas}
                                     </p>
-                                    <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                    <button onClick={() => (onClick(computerSetData[0].id_Kompiuterio_rinkinys, cpu.id_Detale))} style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
                                  : (<button href="" >Pridėti</button>)}
                             </li>
@@ -105,7 +114,7 @@ export default function ComputerSetForm() {
                                     <p>
                                         {cooler.pavadinimas}
                                     </p>
-                                    <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                    <button onClick={() => (onClick(computerSetData[0].id_Kompiuterio_rinkinys, cooler.id_Detale))}  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
                                  : (<button href="" >Pridėti</button>)}
                             </li>
@@ -117,7 +126,7 @@ export default function ComputerSetForm() {
                                     <p>
                                         {motherboard.pavadinimas}
                                     </p>
-                                    <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                    <button onClick={() => (onClick(computerSetData[0].id_Kompiuterio_rinkinys, motherboard.id_Detale))}  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
                                  : (<button href="" >Pridėti</button>)}
                             </li>
@@ -129,7 +138,7 @@ export default function ComputerSetForm() {
                                     <p>
                                         {ram.pavadinimas}
                                     </p>
-                                    <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                    <button onClick={() => (onClick(computerSetData[0].id_Kompiuterio_rinkinys, ram.id_Detale))}  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
                                  : (<button href="" >Pridėti</button>)}
                             </li>
@@ -141,7 +150,7 @@ export default function ComputerSetForm() {
                                     <p>
                                         {dataDisk.pavadinimas}
                                     </p>
-                                    <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                    <button onClick={() => (onClick(computerSetData[0].id_Kompiuterio_rinkinys, dataDisk.id_Detale))}  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
                                  : (<button href="" >Pridėti</button>)}
                             </li>
@@ -153,7 +162,7 @@ export default function ComputerSetForm() {
                                     <p>
                                         {gpu.pavadinimas}
                                     </p>
-                                    <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                    <button onClick={() => (onClick(computerSetData[0].id_Kompiuterio_rinkinys, gpu.id_Detale))}  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
                                  : (<button href="" >Pridėti</button>)}
                             </li>
@@ -165,7 +174,7 @@ export default function ComputerSetForm() {
                                     <p>
                                         {powerSuply.pavadinimas}
                                     </p>
-                                    <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                    <button onClick={() => (onClick(computerSetData[0].id_Kompiuterio_rinkinys, powerSuply.id_Detale))}  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
                                  : (<button href="" >Pridėti</button>)}
                             </li>
@@ -177,7 +186,7 @@ export default function ComputerSetForm() {
                                     <p>
                                         {monitor.pavadinimas}
                                     </p>
-                                    <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                    <button onClick={() => (onClick(computerSetData[0].id_Kompiuterio_rinkinys, monitor.id_Detale))}  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
                                  : (<button href="" >Pridėti</button>)}
                             </li>
@@ -189,7 +198,7 @@ export default function ComputerSetForm() {
                                     <p>
                                         {mouse.pavadinimas}
                                     </p>
-                                    <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                    <button onClick={() => (onClick(computerSetData[0].id_Kompiuterio_rinkinys, mouse.id_Detale))}  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
                                  : (<button href="" >Pridėti</button>)}
                             </li>
@@ -201,7 +210,7 @@ export default function ComputerSetForm() {
                                     <p>
                                         {keyboard.pavadinimas}
                                     </p>
-                                    <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                    <button onClick={() => (onClick(computerSetData[0].id_Kompiuterio_rinkinys, keyboard.id_Detale))} style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
                                  : (<button href="" >Pridėti</button>)}
                             </li>

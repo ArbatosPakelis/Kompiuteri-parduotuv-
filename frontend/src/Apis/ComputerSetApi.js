@@ -22,6 +22,9 @@ export default class ComputerSetApi extends Api {
     generateSetToForm = (id_Detale, id_Kompiuterio_rinkinys) => {
         return super.init().get(`/computerSet/generateToComputerSetForm?kiekis=1&id_Rinkinio_detale=${id_Detale}&fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=${id_Kompiuterio_rinkinys}&fk_Detaleid_Detale=${id_Detale}`);
     };
+    unlinkPartFromBuild = (fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys, fk_Detaleid_Detale) => {
+        return super.init().delete(`/computerSet/unlinkPartFromBuild?fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=${fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys}&fk_Detaleid_Detale=${fk_Detaleid_Detale}`);
+    };
 
 
 
