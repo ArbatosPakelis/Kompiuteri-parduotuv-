@@ -76,9 +76,16 @@ export default function ComputerSetForm() {
         const setApi = new ComputerSetApi();
         if(typeof someID == 'number' || typeof otherID == 'number'){
             const response = await setApi.unlinkPartFromBuild(someID, otherID);
+            console.log(response)
+            console.log(response.data.ans)
+            if(response.data.ans !== undefined){
+                setProblems(response.data.ans)
+            }
+            else{
+                // eslint-disable-next-line no-restricted-globals
+                location.reload();
+            }
         }
-        // eslint-disable-next-line no-restricted-globals
-        location.reload();
     }
 
     if (loading) {
