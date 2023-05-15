@@ -176,22 +176,42 @@ const updateComputerSet = (req, res) => {
 }
 const generateToComputerSetForm = async (req, res) => {
   const { fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys, fk_Detaleid_Detale } = req.query; // Destructure the parameters from the URL query string
-  
+
   try {
     const connection = await getConnectionFromPool(); // Get a database connection from the pool
 
-    const sql = 'INSERT INTO rinkinio_detale (kiekis, fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys, fk_Detaleid_Detale) VALUES (?, ?, ?)';
-    const result = await executeQuery(connection, sql, [1, fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys, fk_Detaleid_Detale]);
-    
+    // Start a transaction
+    await connection.beginTransaction();
+
+    const sqlInsert = 'INSERT INTO rinkinio_detale (kiekis, fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys, fk_Detaleid_Detale) VALUES (?, ?, ?)';
+    const resultInsert = await executeQuery(connection, sqlInsert, [1, fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys, fk_Detaleid_Detale]);
+
+    const sqlUpdate = 'UPDATE detale SET kiekis = kiekis - 1 WHERE id_Detale = ?';
+    const resultUpdate = await executeQuery(connection, sqlUpdate, [fk_Detaleid_Detale]);
+
+    // Commit the transaction
+    await connection.commit();
+
     connection.release(); // Release the database connection
 
     res.setHeader('Set-Cookie', 'partMessage=successADD; Max-Age=3');
-    res.json({ message: 'Success', result });
+    res.json({ message: 'Success', result: resultInsert });
   } catch (err) {
     console.log(err);
+
+    // If there's an error, rollback the transaction
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (rollbackErr) {
+        console.error('Failed to rollback transaction', rollbackErr);
+      }
+    }
+
     res.status(500).send(err);
   }
 };
+
 
 const getConnectionFromPool = () => {
   return new Promise((resolve, reject) => {
@@ -359,7 +379,7 @@ const generateComputer = async (req, res) => {
 
     const maxPrice = req.query.type === 'browsing' ? 300 : req.query.type === 'studying' ? 600 : req.query.type === 'gaming' ? Number.MAX_SAFE_INTEGER : 0;
     let cpuSocket, ramGen, pcieStand;
-    let gamingMinPrice=650;
+    let gamingMinPrice = 601;
     let motherboard = [
       {
         type: 'Motinine plokste',
@@ -370,6 +390,7 @@ const generateComputer = async (req, res) => {
         JOIN motinine_plokste ON detale.id_Detale = motinine_plokste.id_Motinine_plokste
         WHERE detale.tipas = 'Motinine plokste'
         AND detale.kaina <= ?
+        AND detale.kiekis >= 1
         ORDER BY detale.kaina DESC, motinine_plokste.RAM_karta DESC`
       }
     ];
@@ -399,7 +420,7 @@ const generateComputer = async (req, res) => {
         parameters: ['price', 'cpuSocket'],
         sql: `SELECT detale.*, procesorius.*
         FROM detale INNER JOIN procesorius ON detale.id_Detale = procesorius.id_Procesorius
-        WHERE detale.tipas = 'Procesorius' AND detale.kaina <= ? AND procesorius.CPU_lizdo_standartas = ? ORDER BY detale.kaina DESC,
+        WHERE detale.tipas = 'Procesorius' AND detale.kaina <= ? AND procesorius.CPU_lizdo_standartas = ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC,
         procesorius.branduoliu_kiekis DESC,
         procesorius.daznis DESC LIMIT 3`
       },
@@ -410,7 +431,7 @@ const generateComputer = async (req, res) => {
         parameters: ['price', 'ramGen'],
         sql: `SELECT detale.*, atmintis.*
         FROM detale JOIN atmintis ON detale.id_Detale = atmintis.id_Atmintis
-        WHERE detale.tipas = 'Atmintis' AND detale.kaina <= ? AND atmintis.RAM_karta = ? ORDER BY detale.kaina DESC,
+        WHERE detale.tipas = 'Atmintis' AND detale.kaina <= ? AND atmintis.RAM_karta = ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC,
         atmintis.talpa DESC,
         atmintis.daznis DESC LIMIT 3`
       },
@@ -421,7 +442,7 @@ const generateComputer = async (req, res) => {
         parameters: ['price'],
         sql: `SELECT detale.*, vaizdo_plokste.*
         FROM detale JOIN vaizdo_plokste ON detale.id_Detale = vaizdo_plokste.id_Vaizdo_plokste
-        WHERE detale.tipas = 'Vaizdo Plokste' AND detale.kaina <= ? ORDER BY detale.kaina DESC,
+        WHERE detale.tipas = 'Vaizdo Plokste' AND detale.kaina <= ?  AND detale.kiekis >= 1 ORDER BY detale.kaina DESC,
         vaizdo_plokste.VRAM_kiekis DESC,
         vaizdo_plokste.VRAM_daznis DESC LIMIT 3`
       },
@@ -432,7 +453,7 @@ const generateComputer = async (req, res) => {
         parameters: ['price'],
         sql: `SELECT detale.*, isorine_atmintis.*
         FROM detale JOIN isorine_atmintis ON detale.id_Detale = isorine_atmintis.id_Isorine_atmintis
-        WHERE detale.tipas = 'Isorine atmintis' AND detale.kaina <= ? ORDER BY detale.kaina DESC,
+        WHERE detale.tipas = 'Isorine atmintis' AND detale.kaina <= ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC,
         isorine_atmintis.skaitymo_greitis DESC LIMIT 3`
       },
       {
@@ -442,7 +463,7 @@ const generateComputer = async (req, res) => {
         parameters: ['price'],
         sql: `SELECT detale.*, maitinimo_blokas.*
         FROM detale JOIN maitinimo_blokas ON detale.id_Detale = maitinimo_blokas.id_Maitinimo_blokas
-        WHERE detale.tipas = 'Maitinimo blokas' AND detale.kaina <= ? ORDER BY detale.kaina DESC,
+        WHERE detale.tipas = 'Maitinimo blokas' AND detale.kaina <= ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC,
         maitinimo_blokas.galia DESC LIMIT 3`
       },
       {
@@ -452,7 +473,7 @@ const generateComputer = async (req, res) => {
         parameters: ['price'],
         sql: `SELECT detale.*, monitorius.*
         FROM detale JOIN monitorius ON detale.id_Detale = monitorius.id_Monitorius
-        WHERE detale.tipas = 'Monitorius' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 3`
+        WHERE detale.tipas = 'Monitorius' AND detale.kaina <= ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC LIMIT 3`
       },
       {
         type: 'Ausintuvas',
@@ -461,7 +482,7 @@ const generateComputer = async (req, res) => {
         parameters: ['price'],
         sql: `SELECT detale.*, ausintuvas.*
         FROM detale JOIN ausintuvas ON detale.id_Detale = ausintuvas.id_Ausintuvas
-        WHERE detale.tipas = 'Ausintuvas' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 3`
+        WHERE detale.tipas = 'Ausintuvas' AND detale.kaina <= ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC LIMIT 3`
       },
       {
         type: 'Pele',
@@ -470,7 +491,7 @@ const generateComputer = async (req, res) => {
         parameters: ['price'],
         sql: `SELECT detale.*, kompiuterio_pele.*
         FROM detale JOIN kompiuterio_pele ON detale.id_Detale = kompiuterio_pele.id_Kompiuterio_pele
-        WHERE detale.tipas = 'Kompiuterio pele' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 1`
+        WHERE detale.tipas = 'Kompiuterio pele' AND detale.kaina <= ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC LIMIT 1`
       },
       {
         type: 'Klaviatura',
@@ -479,7 +500,7 @@ const generateComputer = async (req, res) => {
         parameters: ['price'],
         sql: `SELECT detale.*, klaviatura.*
         FROM detale JOIN klaviatura ON detale.id_Detale = klaviatura.id_Klaviatura
-        WHERE detale.tipas = 'Klaviatura' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 1`
+        WHERE detale.tipas = 'Klaviatura' AND detale.kaina <= ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC LIMIT 1`
       }
 
     ];
@@ -490,28 +511,51 @@ const generateComputer = async (req, res) => {
     };
     
     const promises = components.map(c => new Promise((resolve, reject) => {
-      const queryParams = c.parameters.map(p => p === 'price' ? c.price : mboardparameters[p]);
+      const tryQuery = async (price, minPrice, decreaseRate = 0.8) => {
+        return new Promise((resolve, reject) => {
+          const queryParams = c.parameters.map(p => p === 'price' ? price : mboardparameters[p]);
     
-      console.log('Executing query for:', c.type);
-      console.log('Parameters:', queryParams);
-      console.log(c.minPrice);
+          console.log('Executing query for:', c.type);
+          console.log('Parameters:', queryParams);
+          console.log(minPrice);
     
-      connection.query(c.sql, queryParams, (error, rows) => {
-        if (error) {
-          reject(error);
-        } else {
-          const filteredRows = rows.filter(row => row.kaina >= c.minPrice);
-          const randomIndex = Math.floor(Math.random() * filteredRows.length);
-          const randomElement = filteredRows[randomIndex];
+          connection.query(c.sql, queryParams, (error, rows) => {
+            if (error) {
+              reject(error);
+            } else {
+              const filteredRows = rows.filter(row => row.kaina >= minPrice);
+              if (filteredRows.length === 0) {
+                if (price <= minPrice) {
+                  resolve({
+                    type: c.type,
+                    details: { kaina: 0, pavadinimas: 'Out of stock', kiekis: 0 }
+                  }); // Return a placeholder for out of stock component
+                } else {
+                  // Try again with lower price
+                  tryQuery(price * decreaseRate, minPrice * decreaseRate)
+                    .then(result => resolve(result))
+                    .catch(err => reject(err));
+                }
+              } else {
+                const randomIndex = Math.floor(Math.random() * filteredRows.length);
+                const randomElement = filteredRows[randomIndex];
     
-          resolve({ type: c.type, details: randomElement });
-        }
-      });
+                resolve({ type: c.type, details: randomElement });
+              }
+            }
+          });
+        });
+    };
+    
+    tryQuery(c.price, c.minPrice)
+      .then(result => resolve(result))
+      .catch(err => reject(err));
+    
     }));
 
     const resultsWithoutMotherboard = await Promise.all(promises);
 
-    const results = [...resultsMotherboard, ...resultsWithoutMotherboard];
+    const results = [...resultsMotherboard, ...resultsWithoutMotherboard].filter(r => r != null);
     console.log(results);
 
     res.status(200).json(results);
