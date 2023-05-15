@@ -25,8 +25,7 @@ export default class ComputerSetApi extends Api {
     unlinkPartFromBuild = (fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys, fk_Detaleid_Detale) => {
         return super.init().delete(`/computerSet/unlinkPartFromBuild?fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=${fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys}&fk_Detaleid_Detale=${fk_Detaleid_Detale}`);
     };
-
-
-
-    //computerSet/updateComputerSet?kiekis=5&id_Rinkinio_detale=92&fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=4&fk_Detaleid_Detale=87
+    updateComputerSet = (id_Detale, id_Kompiuterio_rinkinys) => {
+        return super.init().get(`/computerSet/updateComputerSet?kiekis=1&fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=${id_Kompiuterio_rinkinys}&fk_Detaleid_Detale=${id_Detale}`);
+    };
 }
