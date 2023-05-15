@@ -14,6 +14,9 @@ export default function ComputerSetForm() {
     const [dataDisk, setDataDisk] = useState(null);
     const [powerSuply, setPowerSupply] = useState(null);
     const [cooler, setCooler] = useState(null);
+    const [monitor, setMonitor] = useState(null);
+    const [mouse, setMouse] = useState(null);
+    const [keyboard, setKeyboard] = useState(null);
     const [loading, setLoading] = useState(true); // New loading state
     const [problems, setProblems] = useState(null);
     const [success, setSuccess] = useState(false);
@@ -30,7 +33,7 @@ export default function ComputerSetForm() {
 
     // Update total price whenever the components change
     useEffect(() => {
-      const parts = [motherboard, cpu, ram, gpu, dataDisk, powerSuply, cooler];
+      const parts = [motherboard, cpu, ram, gpu, dataDisk, powerSuply, cooler, monitor, mouse, keyboard];
       const price = parts.reduce((sum, part) => sum + (part ? part.kaina : 0), 0);
       setTotalPrice(price);
     }, [motherboard, cpu, ram, gpu, dataDisk, powerSuply, cooler]);
@@ -51,6 +54,9 @@ export default function ComputerSetForm() {
         setDataDisk(rows.find((part) => part.tipas === 'Isorine atmintis'));
         setPowerSupply(rows.find((part) => part.tipas === 'Maitinimo blokas'));
         setCooler(rows.find((part) => part.tipas === 'Ausintuvas'));
+        setMonitor(rows.find((part) => part.tipas === 'Monitorius'));
+        setMouse(rows.find((part) => part.tipas === 'Kompiuterio pele'));
+        setKeyboard(rows.find((part) => part.tipas === 'Klaviatura'))
 
         setLoading(false);
       } catch (err) {
@@ -105,7 +111,7 @@ export default function ComputerSetForm() {
                             </li>
                             <hr/>
                             <li style={{marginTop:30, display:'flex'}}>
-                                <p style={{ marginRight:50, width:150, display:'inline-block'}}>Motinine plokste</p>
+                                <p style={{ marginRight:50, width:150, display:'inline-block'}}>Motininė plokštė</p>
                                 {motherboard ? (
                                 <div style={{display:'flex', width:'60%'}}>
                                     <p>
@@ -141,7 +147,7 @@ export default function ComputerSetForm() {
                             </li>
                             <hr/>
                             <li style={{marginTop:30, display:'flex'}}>
-                                <p style={{ marginRight:50, width:150, display:'inline-block'}}>Vaizdo plokste</p>
+                                <p style={{ marginRight:50, width:150, display:'inline-block'}}>Vaizdo plokštė</p>
                                 {gpu ? (
                                 <div style={{display:'flex', width:'60%'}}>
                                     <p>
@@ -163,6 +169,43 @@ export default function ComputerSetForm() {
                                 </div>)
                                  : (<button href="" >Pridėti</button>)}
                             </li>
+                            <hr/>
+                            <li style={{marginTop:30, display:'flex'}}>
+                                <p style={{ marginRight:50, width:150, display:'inline-block'}}>Monitorius</p>
+                                {monitor ? (
+                                <div style={{display:'flex', width:'60%'}}>
+                                    <p>
+                                        {monitor.pavadinimas}
+                                    </p>
+                                    <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                </div>)
+                                 : (<button href="" >Pridėti</button>)}
+                            </li>
+                            <hr/>
+                            <li style={{marginTop:30, display:'flex'}}>
+                                <p style={{ marginRight:50, width:150, display:'inline-block'}}>Kompiuterio pelė</p>
+                                {mouse ? (
+                                <div style={{display:'flex', width:'60%'}}>
+                                    <p>
+                                        {mouse.pavadinimas}
+                                    </p>
+                                    <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                </div>)
+                                 : (<button href="" >Pridėti</button>)}
+                            </li>
+                            <hr/>
+                            <li style={{marginTop:30, display:'flex'}}>
+                                <p style={{ marginRight:50, width:150, display:'inline-block'}}>Klaviatūra</p>
+                                {keyboard ? (
+                                <div style={{display:'flex', width:'60%'}}>
+                                    <p>
+                                        {keyboard.pavadinimas}
+                                    </p>
+                                    <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                </div>)
+                                 : (<button href="" >Pridėti</button>)}
+                            </li>
+                            <hr/>
                         </ul>
                     </div>
                     <p style={{color:'green', marginLeft:150, marginTop:50}}>{success === true ? "Rinkinys yra suderinamas": ""}</p>
