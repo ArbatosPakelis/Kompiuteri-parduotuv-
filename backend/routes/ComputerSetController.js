@@ -138,7 +138,6 @@ const updateComputerSet = (req, res) => {
   const params = req.query // get all params
   pool.getConnection((err, connection) => {
       if(err) throw err
-      console.log(params)
       const keys = Object.keys(params) // get param names
       let line1 = ""
       for (a in keys){ // merge params names into a single string, but still has a extra comma at the end
@@ -160,7 +159,7 @@ const updateComputerSet = (req, res) => {
       connection.release() // return the connection to pool
         if (!err) {
             const id = result.insertId;
-            res.setHeader('Set-Cookie', 'partMessage=successADD; Max-Age=3');
+            res.setHeader("Set-Cookie", "partMessage=successADD; Max-Age=3; Path=/");
             res.json({ id });
         }
         else if (err.errno === 1062) {

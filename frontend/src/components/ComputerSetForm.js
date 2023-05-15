@@ -109,14 +109,15 @@ export default function ComputerSetForm() {
     
     return (
             <div style={{ alignContent:'center', paddingLeft:100}}>
-                {message && <div style={{ color: message.includes('mingai') ? 'green' : 'red' }}>{message}</div>}
                     <center>
-                        <h2 style={{paddingBottom:50, paddingTop:50}}>
+                        <h2 style={{paddingBottom:0, paddingTop:20}}>
                             {computerSetData ? computerSetData[0].pavadinimas : 'Loading...'}
                         </h2>
-                        <h3>Viso rinkinio kaina: {totalPrice.toFixed(2)}</h3>
+                        <h4 style={{marginTop:-10}}>Viso rinkinio kaina: {totalPrice.toFixed(2)}</h4>
+                        {message && <div style={{ textAlign: "center", color: message.includes('mingai') ? 'green' : 'red' }}>{message}</div>}
                     </center>
-                    <div style={{display:'inline-block', width:'60%'}}>
+                <div style={{textAlign:"center"}}>
+                    <div style={{display:'inline-block', width:'60%', textAlign: "left"}}>
                         <ul>
                             <li style={{marginTop:30, display:'flex'}}>
                                 <p style={{ marginRight:50, width:150, display:'inline-block'}}>Procesorius</p>
@@ -233,16 +234,19 @@ export default function ComputerSetForm() {
                                     <p>
                                         {keyboard.pavadinimas}
                                     </p>
-                                    <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                    <button href=""  style={{fontSize:20, marginRight:'auto'}}>&#10005;</button>
                                 </div>)
                                  : (<button onClick={() => {window.location.href = `/detales?tipas=klaviatura&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
                             </li>
                             <hr/>
                         </ul>
                     </div>
-                    <p style={{color:'green', marginLeft:150, marginTop:50}}>{success === true ? "Rinkinys yra suderinamas": ""}</p>
-                    <p style={{color:'red', marginLeft:150, marginTop:50}}>{problems}</p>
-                    <button onClick={magic} >Tikrinti suderinamumą</button>
+                </div>
+                <div style={{textAlign:"center"}}>
+                    <p style={{color:'green', marginLeft:0, marginTop:0}}>{success === true ? "Rinkinys yra suderinamas": ""}</p>
+                    <p style={{color:'red', marginLeft:0, marginTop:50}}>{problems}</p>
+                    <button onClick={magic} style={{marginBottom:20}}>Tikrinti suderinamumą</button>
+                </div>
         </div>
     );
 }
