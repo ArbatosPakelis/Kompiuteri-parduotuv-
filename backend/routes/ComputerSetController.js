@@ -400,11 +400,15 @@ const generateComputer = async (req, res) => {
         if (error) {
           reject(error);
         } else {
-          const selectedRow = rows[0]; // Choose the desired row based on your criteria
-          cpuSocket = selectedRow.CPU_lizdo_standartas;
-          ramGen = selectedRow.RAM_karta;
-          pcieStand = selectedRow.PCIe_standartas;
-          resolve({ type: c.type, details: selectedRow });
+          const selectedRow = rows[0];
+          if (!selectedRow) {
+            reject(new Error('No rows returned from query for ' + c.type));
+          } else {
+            cpuSocket = selectedRow.CPU_lizdo_standartas;
+            ramGen = selectedRow.RAM_karta;
+            pcieStand = selectedRow.PCIe_standartas;
+            resolve({ type: c.type, details: selectedRow });
+          }
         }
       });
     }));
@@ -502,7 +506,6 @@ const generateComputer = async (req, res) => {
         FROM detale JOIN klaviatura ON detale.id_Detale = klaviatura.id_Klaviatura
         WHERE detale.tipas = 'Klaviatura' AND detale.kaina <= ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC LIMIT 1`
       }
-
     ];
     const mboardparameters = {
       cpuSocket, 
@@ -510,8 +513,9 @@ const generateComputer = async (req, res) => {
       pcieStand 
     };
     
-    const promises = components.map(c => new Promise((resolve, reject) => {
-      const tryQuery = async (price, minPrice, decreaseRate = 0.8) => {
+    const promises = components.map(c => {
+      // Declare tryQuery function outside of promise
+      const tryQuery = async (price, minPrice, decreaseRate = 0.5) => {
         return new Promise((resolve, reject) => {
           const queryParams = c.parameters.map(p => p === 'price' ? price : mboardparameters[p]);
     
@@ -525,18 +529,16 @@ const generateComputer = async (req, res) => {
             } else {
               const filteredRows = rows.filter(row => row.kaina >= minPrice);
               if (filteredRows.length === 0) {
-                if (price <= minPrice) {
-                  resolve({
-                    type: c.type,
-                    details: { kaina: 0, pavadinimas: 'Out of stock', kiekis: 0 }
-                  }); // Return a placeholder for out of stock component
+                if (price <= minPrice || price < 1 || minPrice < 1) {
+                  reject(new Error(`${c.type} is Out of Stock`));  // Reject the promise with an error
                 } else {
                   // Try again with lower price
                   tryQuery(price * decreaseRate, minPrice * decreaseRate)
                     .then(result => resolve(result))
                     .catch(err => reject(err));
                 }
-              } else {
+              }
+              else {
                 const randomIndex = Math.floor(Math.random() * filteredRows.length);
                 const randomElement = filteredRows[randomIndex];
     
@@ -545,13 +547,12 @@ const generateComputer = async (req, res) => {
             }
           });
         });
-    };
+      };
     
-    tryQuery(c.price, c.minPrice)
-      .then(result => resolve(result))
-      .catch(err => reject(err));
+      // Return promise immediately invoking tryQuery function
+      return tryQuery(c.price, c.minPrice);
+    });
     
-    }));
 
     const resultsWithoutMotherboard = await Promise.all(promises);
 
@@ -562,7 +563,8 @@ const generateComputer = async (req, res) => {
 
     connection.release();
   } catch (err) {
-    res.status(500).send(err);
+    res.status(500).json({ message: 'Klaida: Nėra pakankamai komponentų sudaryti rinkiniui. Kompiuterio generavimas nepavyko.' });
+
   }
 };
 

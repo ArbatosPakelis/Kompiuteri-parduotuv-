@@ -5,12 +5,13 @@ import { useNavigate } from 'react-router-dom';
 function SelectionPage() {
   const [generatedSetData, setGeneratedSetData] = useState([]);
   const [computerSetId, setComputerSetId] = useState(null);
+  const [error, setError] = useState(null); // add error state
   let navigate = useNavigate();
 
   const generateSet = async (type) => {
     try {
       const setApi = new ComputerSetApi();
-      const response = await setApi.generateSet(type);
+      const response = await setApi.generateSet(type);     
       setGeneratedSetData(response.data);
 
       // Create a unique name for the new computer set
@@ -24,8 +25,6 @@ function SelectionPage() {
         setApi.generateSetToForm(item.details.id_Detale, computerSetResponse.data.id)
       );
 
-      console.log(response.data);
-      console.log(computerSetResponse.data.id);
       // Wait for all promises to resolve
       try {
           await Promise.all(componentPromises);
@@ -36,9 +35,11 @@ function SelectionPage() {
       navigate(`/rinkiniai/${computerSetResponse.data.id}`);
 
       console.log(response.data);
+      setError(null);
     } catch (err) {
-      console.log(err.response.data.message)
       setGeneratedSetData(null);
+      setError(err.response.data.message);
+        return;
     }
   };
 
@@ -55,7 +56,7 @@ function SelectionPage() {
       <button className='tipas' onClick={() => generateSet('gaming')}>
         Žaidimams
       </button>
-      <b></b>
+      {error && <p style={{ color: 'red' }}>{error}</p>} {/* render error message */}
     </div>
   );
 }
