@@ -12,6 +12,7 @@ import ComputerSetList from './components/ComputerSetList';
 import ComputerSetForm from './components/ComputerSetForm';
 import ComputerSetNewForm from './components/ComputerSetNewForm';
 import ComputerSetRequirements from './components/ComputerSetRequirements';
+import CompareParts from './components/CompareParts';
 function App() {
 
     return (
@@ -29,6 +30,7 @@ function App() {
                     <Route path='/rinkiniai/:id' element={<ComputerSetForm />} />
                     <Route path='/rinkiniai/new' element={<ComputerSetNewForm/>} />
                     <Route path='/rinkiniai/generuoti' element={<ComputerSetRequirements/>} />
+                    <Route path='/detales/lyginti/' element={<CompareParts/>} />
                 </Routes>
             </div>
         </Router>

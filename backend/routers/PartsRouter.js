@@ -17,5 +17,6 @@ router.post('/addSpecPart', parts.addSpecPart);
 router.put('/setPart', parts.setPart);
 router.put('/setSpecPart', parts.setSpecPart);
 router.put('/applyRecommendation', parts.applyRecommendationLevel);
+router.get('/compareParts/:id1/:id2', parts.compareParts);
 
 module.exports = router;
