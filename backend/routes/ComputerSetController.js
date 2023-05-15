@@ -310,7 +310,8 @@ const unlinkPartFromBuild= (req, res) => {
   pool.getConnection((err, connection) => {
     if (err) throw err;
     let sqlQuery = '';
-    sqlQuery = 'DELETE FROM rinkinio_detale WHERE fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=' + req.query.id;
+    sqlQuery = 'DELETE FROM rinkinio_detale WHERE fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=' 
+    + req.query.fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys + " AND fk_Detaleid_Detale=" + req.query.fk_Detaleid_Detale;
 
     connection.query(sqlQuery, (err, rows) => {
       if (err) {
