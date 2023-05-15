@@ -255,32 +255,58 @@ const removePart = (req, res) => {
     if (err) {
         return res.status(500).send('Internal Server Error');
     }
-    const sqlCheck = 'SELECT FROM preke WHERE fk_Detaleid_Detale = ' + req.params.id;
-    //connection.query(sqlCheck, (err, rows) => {
-           //if (!err) {} else {}
-    //});
+    const id = req.params.id;
+    const isCurrentPartsSetBeingBought = `SELECT COUNT(*) as count FROM detale
+                              INNER JOIN rinkinio_detale ON detale.id_Detale = rinkinio_detale.fk_Detaleid_Detale
+                              INNER JOIN kompiuterio_rinkinys ON rinkinio_detale.fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys = kompiuterio_rinkinys.id_Kompiuterio_rinkinys
+                              INNER JOIN preke ON preke.id_Preke = kompiuterio_rinkinys.fk_Prekeid_Preke
+                              WHERE detale.id_Detale = ${id};`;
 
-    const sqlRemoveFromAllBuilds = 'DELETE FROM kompiuterio_rinkinys WHERE fk_Prekeid_Preke = ' + req.params.id;
-    //connection.query(sqlRemoveFromAllBuilds, (err, rows) => {
-        //if (!err) {} else {}
-    //});
-
-    const sql = 'DELETE FROM detale WHERE id_Detale = ' + req.params.id;
-    connection.query(sql, (err, rows) => {
-        connection.release(); // return the connection to pool
-        if (!err) {
-            res.setHeader('Set-Cookie', 'partMessage=success; Max-Age=3');
-            res.send(
-            `success.`
-            );
-        } else if (err.errno == 1451) {
-        res.send(
-            'part is being used as a foreign key in other tables, delete those entries first'
-        );
-        } else {
-        console.log(err);
-        res.send('error');
-        }
+    connection.query(isCurrentPartsSetBeingBought, (checkErr, chkResult) => {
+           if (checkErr) {
+               console.log(checkErr);
+               res.send('error');
+           } else {
+               const count = chkResult[0].count;
+               if (count === 0) {
+                   const isCurrentPartBeingBought = `SELECT COUNT(*) as count FROM preke WHERE fk_Detaleid_Detale = ${id};`;
+                   connection.query(isCurrentPartBeingBought, (checkErr, chkResult2) => {
+                       const count2 = chkResult2[0].count;
+                       if(count2 === 0){
+                           // if the part is not assigned to the 'preke' table, delete it from 'rinkinio_detale' table if it exists
+                           const deleteFromBuilds = `DELETE FROM rinkinio_detale WHERE fk_Detaleid_Detale = ${id}`;
+                           connection.query(deleteFromBuilds, (selErr, selResult) => {
+                               if (!selErr) {
+                                   const sql = `DELETE FROM detale WHERE id_Detale = ${id}`;
+                                   connection.query(sql , (err, rows) => {
+                                       connection.release()
+                                       if (!err) {
+                                           res.setHeader('Set-Cookie', 'partMessage=success; Max-Age=3');
+                                           res.send(
+                                               `success.`
+                                           );
+                                       } else if (err.errno == 1451) {
+                                           res.send(
+                                               'part is being used as a foreign key in other tables, delete those entries first'
+                                           );
+                                       } else {
+                                           console.log(err);
+                                           res.send('error');
+                                       }
+                                   });
+                               } else {
+                                   console.log(selErr);
+                               }
+                           });
+                       } else {
+                           res.setHeader('Set-Cookie', 'partMessage=partBeingBought; Max-Age=3');
+                           res.send(
+                               `Part cannot be updated. It is being bought.`
+                           );
+                       }
+               });
+               }
+           }
     });
     });
 }
@@ -449,9 +475,7 @@ const setPart = (req, res) => {
                 const count = checkResult[0].count;
                 if (count === 0) {
                     // check if the detale is assigned to 'preke' table
-                    const isCurrentPartBeingBought = `SELECT COUNT(*) as count FROM detale
-                                  INNER JOIN preke ON detale.id_Detale = preke.fk_Detaleid_Detale
-                                  WHERE detale.${name} = ${id};`;
+                    const isCurrentPartBeingBought = `SELECT COUNT(*) as count FROM preke WHERE fk_Detaleid_Detale = ${id};`;
                     connection.query(isCurrentPartBeingBought, (checkErr, checkResult) => {
                         const count = checkResult[0].count;
                         if(count === 0){
