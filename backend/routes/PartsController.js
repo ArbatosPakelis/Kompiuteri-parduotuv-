@@ -718,6 +718,73 @@ const recommendParts = (req, res) => {
     });
 }
 
+const compareParts = (req, res) => {
+    pool.getConnection((err, connection) => {
+      let id1 = req.params.id1;
+      let id2 = req.params.id2;
+  
+      const selectParts = `SELECT * FROM detale WHERE id_Detale = ?`;
+  
+      connection.query(selectParts, [id1], (error, rows1) => {
+        if (error) {
+          return res.status(500).send(error);
+        }
+        console.log(id1);
+        if (rows1.length === 0) {
+          return res.status(404).send('Part 1 not found');
+        }
+  
+          let tipas = convertString(rows1[0].tipas);
+  
+          const newSql1 = `SELECT * FROM ${tipas}
+            INNER JOIN detale ON detale.id_Detale = ${tipas}.id_${tipas}
+            WHERE ${tipas}.id_${tipas} = ${id1}`;
+  
+          const newSql2 = `SELECT * FROM ${tipas}
+            INNER JOIN detale ON detale.id_Detale = ${tipas}.id_${tipas}
+            WHERE ${tipas}.id_${tipas} = ${id2}`;
+  
+  
+          connection.query(newSql1, (error, rowsNew1) => {
+            if (error) {
+              return res.status(500).send(error);
+            }
+  
+            connection.query(newSql2, (error, rowsNew2) => {
+              if (error) {
+                return res.status(500).send(error);
+              }
+  
+              // Compare the parameters
+              let differences = [];
+              for (let key in rowsNew1[0]) {
+                if (!/^id/.test(key) && key !== 'kiekis' && rowsNew1[0][key] !== rowsNew2[0][key]) {
+                  differences.push({
+                    parameter: key,
+                    part1Value: rowsNew1[0][key],
+                    part2Value: rowsNew2[0][key]
+                  });
+                }
+              }
+  
+              // Return the differences
+              res.send(differences);
+            });
+          });
+        
+      });
+    });
+  };
+  
+
+  function convertString(inputString) {
+    var lowercaseString = inputString.toLowerCase();
+    var replacedString = lowercaseString.replace(/ /g, '_');
+    return replacedString;
+  }
+
+
+
 module.exports = {
     getAllParts,
     getPart,
@@ -732,5 +799,6 @@ module.exports = {
     applyRecommendationLevel,
     getRecommendations,
     getReviews,
-    recommendParts
+    recommendParts,
+    compareParts
 }
