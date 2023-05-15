@@ -193,8 +193,6 @@ const generateToComputerSetForm = async (req, res) => {
   }
 };
 
-
-
 const getConnectionFromPool = () => {
   return new Promise((resolve, reject) => {
     pool.getConnection((err, connection) => {
@@ -484,7 +482,6 @@ const generateComputer = async (req, res) => {
         WHERE detale.tipas = 'Klaviatura' AND detale.kaina <= ? ORDER BY detale.kaina DESC LIMIT 1`
       }
 
-      //order by descending, randomized array every single time
     ];
     const mboardparameters = {
       cpuSocket, 
@@ -503,10 +500,7 @@ const generateComputer = async (req, res) => {
         if (error) {
           reject(error);
         } else {
-          // Filter the rows based on the minPrice
           const filteredRows = rows.filter(row => row.kaina >= c.minPrice);
-          
-          // Pick a random element from the filteredRows
           const randomIndex = Math.floor(Math.random() * filteredRows.length);
           const randomElement = filteredRows[randomIndex];
     
