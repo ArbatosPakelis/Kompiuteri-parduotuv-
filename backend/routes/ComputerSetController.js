@@ -330,7 +330,7 @@ const deleteComputerSet= (req, res) => {
   pool.getConnection((err, connection) => {
     if (err) throw err;
     let sqlQuery = '';
-    sqlQuery = 'DELETE FROM kompiuterio_rinkinys WHERE id_Kompiuterio_rinkinys=' + req.query.id;
+    sqlQuery = 'DELETE FROM rinkinio_detale WHERE fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=' + req.query.id;
 
     connection.query(sqlQuery, (err, rows) => {
       if (err) {
@@ -338,8 +338,16 @@ const deleteComputerSet= (req, res) => {
         connection.release(); // Release the connection back to the pool in case of an error
         return;
       }
+      sqlQuery = 'DELETE FROM kompiuterio_rinkinys WHERE id_Kompiuterio_rinkinys=' + req.query.id;
 
-      res.send(rows);
+      connection.query(sqlQuery, (err, rowz) => {
+        if (err) {
+          console.log(err);
+          connection.release(); // Release the connection back to the pool in case of an error
+          return;
+        }
+        res.send(rowz);
+      });
       connection.release(); // Release the connection back to the pool after sending the response
     });
   });
