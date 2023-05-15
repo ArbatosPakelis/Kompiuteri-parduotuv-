@@ -11,6 +11,7 @@ import NavBar from './components/NavBar';
 import ComputerSetList from './components/ComputerSetList';
 import ComputerSetForm from './components/ComputerSetForm';
 import ComputerSetNewForm from './components/ComputerSetNewForm';
+import ComputerSetRequirements from './components/ComputerSetRequirements';
 function App() {
 
     return (
@@ -27,6 +28,7 @@ function App() {
                     <Route path='/rinkiniai' element={<ComputerSetList />} />
                     <Route path='/rinkiniai/:id' element={<ComputerSetForm />} />
                     <Route path='/rinkiniai/new' element={<ComputerSetNewForm/>} />
+                    <Route path='/rinkiniai/generuoti' element={<ComputerSetRequirements/>} />
                 </Routes>
             </div>
         </Router>

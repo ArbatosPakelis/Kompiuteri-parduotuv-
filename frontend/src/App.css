@@ -84,6 +84,28 @@ button.prideti {
     margin-bottom: 10px;
     border:none;
 }
+button.generuoti {
+    background-color: whitesmoke;
+    text-decoration: none;
+    color: #000;
+    border-radius: 5px;
+    font-size: 16px;
+    padding: 10px;
+    margin-bottom: 10px;
+    margin-left: 10px;
+    border:none;
+}
+button.tipas {
+    background-color: whitesmoke;
+    text-decoration: none;
+    color: #000;
+    border-radius: 5px;
+    font-size: 16px;
+    padding: 10px;
+    margin-bottom: 10px;
+    margin-left: 10px;
+    border:none;
+}
 button.grizti{
     background-color: whitesmoke;
     text-decoration: none;

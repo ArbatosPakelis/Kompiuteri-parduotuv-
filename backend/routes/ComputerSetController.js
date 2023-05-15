@@ -4,7 +4,7 @@ const mysql = require('mysql')
 const app = express();
 
 const pool  = mysql.createPool({
-    connectionLimit : 10,
+    connectionLimit : 20,
     host            : 'localhost',
     user            : 'root',
     password        :  null,
@@ -122,7 +122,7 @@ const compatibility = async (req, res) => {
             res.json({ id });
         }
         else if (err.errno === 1062) {
-            res.send('douplicate entry, try to think of new id')
+            res.send('duplicate entry, try to think of new id')
         }
         else {
             console.log(err)
@@ -164,7 +164,7 @@ const updateComputerSet = (req, res) => {
           res.json({ id });
       }
       else if (err.errno === 1062) {
-          res.send('douplicate entry, try to think of new id')
+          res.send('duplicate entry, try to think of new id')
       }
       else {
           console.log(err)
@@ -174,6 +174,64 @@ const updateComputerSet = (req, res) => {
       });
   });
 }
+const generateToComputerSetForm = async (req, res) => {
+  const { fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys, fk_Detaleid_Detale } = req.query; // Destructure the parameters from the URL query string
+
+  try {
+    const connection = await getConnectionFromPool(); // Get a database connection from the pool
+
+    // Start a transaction
+    await connection.beginTransaction();
+
+    const sqlInsert = 'INSERT INTO rinkinio_detale (kiekis, fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys, fk_Detaleid_Detale) VALUES (?, ?, ?)';
+    const resultInsert = await executeQuery(connection, sqlInsert, [1, fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys, fk_Detaleid_Detale]);
+
+    const sqlUpdate = 'UPDATE detale SET kiekis = kiekis - 1 WHERE id_Detale = ?';
+    const resultUpdate = await executeQuery(connection, sqlUpdate, [fk_Detaleid_Detale]);
+
+    // Commit the transaction
+    await connection.commit();
+
+    connection.release(); // Release the database connection
+
+    res.setHeader('Set-Cookie', 'partMessage=successADD; Max-Age=3');
+    res.json({ message: 'Success', result: resultInsert });
+  } catch (err) {
+    console.log(err);
+
+    // If there's an error, rollback the transaction
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (rollbackErr) {
+        console.error('Failed to rollback transaction', rollbackErr);
+      }
+    }
+
+    res.status(500).send(err);
+  }
+};
+
+
+const getConnectionFromPool = () => {
+  return new Promise((resolve, reject) => {
+    pool.getConnection((err, connection) => {
+      if (err) reject(err);
+      else resolve(connection);
+    });
+  });
+};
+
+const executeQuery = (connection, sql, params) => {
+  return new Promise((resolve, reject) => {
+    connection.query(sql, params, (err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
+};
+
+
 
 const checkComputerSetDuplication= (req, res) => {
   pool.getConnection((err, connection) => {
@@ -314,6 +372,211 @@ const removeComputerSetPart= (req, res) => {
   });
 }
 
+
+const generateComputer = async (req, res) => {
+  try {
+    const connection = await new Promise((resolve, reject) => {
+      pool.getConnection((err, connection) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(connection);
+        }
+      });
+    });
+
+    const maxPrice = req.query.type === 'browsing' ? 300 : req.query.type === 'studying' ? 600 : req.query.type === 'gaming' ? Number.MAX_SAFE_INTEGER : 0;
+    let cpuSocket, ramGen, pcieStand;
+    let gamingMinPrice = 601;
+    let motherboard = [
+      {
+        type: 'Motinine plokste',
+        price: maxPrice * 0.10,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? maxPrice * 0.10 * 0.5 : gamingMinPrice * 0.10,
+        sql: `SELECT detale.*, motinine_plokste.*
+        FROM detale
+        JOIN motinine_plokste ON detale.id_Detale = motinine_plokste.id_Motinine_plokste
+        WHERE detale.tipas = 'Motinine plokste'
+        AND detale.kaina <= ?
+        AND detale.kiekis >= 1
+        ORDER BY detale.kaina DESC, motinine_plokste.RAM_karta DESC`
+      }
+    ];
+
+    const promises2 = motherboard.map(c => new Promise((resolve, reject) => {
+      connection.query(c.sql, [c.price], (error, rows) => {
+        if (error) {
+          reject(error);
+        } else {
+          const selectedRow = rows[0];
+          if (!selectedRow) {
+            reject(new Error('No rows returned from query for ' + c.type));
+          } else {
+            cpuSocket = selectedRow.CPU_lizdo_standartas;
+            ramGen = selectedRow.RAM_karta;
+            pcieStand = selectedRow.PCIe_standartas;
+            resolve({ type: c.type, details: selectedRow });
+          }
+        }
+      });
+    }));
+    
+    
+    const resultsMotherboard = await Promise.all(promises2);
+
+    let components = [
+      {
+        type: 'Procesorius',
+        price: maxPrice * 0.20,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? maxPrice * 0.20 * 0.5 : gamingMinPrice * 0.20,
+        parameters: ['price', 'cpuSocket'],
+        sql: `SELECT detale.*, procesorius.*
+        FROM detale INNER JOIN procesorius ON detale.id_Detale = procesorius.id_Procesorius
+        WHERE detale.tipas = 'Procesorius' AND detale.kaina <= ? AND procesorius.CPU_lizdo_standartas = ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC,
+        procesorius.branduoliu_kiekis DESC,
+        procesorius.daznis DESC LIMIT 3`
+      },
+      {
+        type: 'Atmintis',
+        price: maxPrice * 0.10,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? 0 : gamingMinPrice * 0.10,
+        parameters: ['price', 'ramGen'],
+        sql: `SELECT detale.*, atmintis.*
+        FROM detale JOIN atmintis ON detale.id_Detale = atmintis.id_Atmintis
+        WHERE detale.tipas = 'Atmintis' AND detale.kaina <= ? AND atmintis.RAM_karta = ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC,
+        atmintis.talpa DESC,
+        atmintis.daznis DESC LIMIT 3`
+      },
+      {
+        type: 'Vaizdo plokste',
+        price: maxPrice * 0.20,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? maxPrice * 0.20 * 0.5 : gamingMinPrice * 0.20,
+        parameters: ['price'],
+        sql: `SELECT detale.*, vaizdo_plokste.*
+        FROM detale JOIN vaizdo_plokste ON detale.id_Detale = vaizdo_plokste.id_Vaizdo_plokste
+        WHERE detale.tipas = 'Vaizdo Plokste' AND detale.kaina <= ?  AND detale.kiekis >= 1 ORDER BY detale.kaina DESC,
+        vaizdo_plokste.VRAM_kiekis DESC,
+        vaizdo_plokste.VRAM_daznis DESC LIMIT 3`
+      },
+      {
+        type: 'Isorine atmintis',
+        price: maxPrice * 0.10,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? maxPrice * 0.10 * 0.5 : gamingMinPrice * 0.10,
+        parameters: ['price'],
+        sql: `SELECT detale.*, isorine_atmintis.*
+        FROM detale JOIN isorine_atmintis ON detale.id_Detale = isorine_atmintis.id_Isorine_atmintis
+        WHERE detale.tipas = 'Isorine atmintis' AND detale.kaina <= ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC,
+        isorine_atmintis.skaitymo_greitis DESC LIMIT 3`
+      },
+      {
+        type: 'Maitinimo blokas',
+        price: maxPrice * 0.10,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? maxPrice * 0.10 * 0.5 : gamingMinPrice * 0.10,
+        parameters: ['price'],
+        sql: `SELECT detale.*, maitinimo_blokas.*
+        FROM detale JOIN maitinimo_blokas ON detale.id_Detale = maitinimo_blokas.id_Maitinimo_blokas
+        WHERE detale.tipas = 'Maitinimo blokas' AND detale.kaina <= ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC,
+        maitinimo_blokas.galia DESC LIMIT 3`
+      },
+      {
+        type: 'Monitorius',
+        price: maxPrice * 0.10,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? maxPrice * 0.10 * 0.5 : gamingMinPrice * 0.10,
+        parameters: ['price'],
+        sql: `SELECT detale.*, monitorius.*
+        FROM detale JOIN monitorius ON detale.id_Detale = monitorius.id_Monitorius
+        WHERE detale.tipas = 'Monitorius' AND detale.kaina <= ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC LIMIT 3`
+      },
+      {
+        type: 'Ausintuvas',
+        price: maxPrice * 0.05,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? 0 : gamingMinPrice * 0.05,
+        parameters: ['price'],
+        sql: `SELECT detale.*, ausintuvas.*
+        FROM detale JOIN ausintuvas ON detale.id_Detale = ausintuvas.id_Ausintuvas
+        WHERE detale.tipas = 'Ausintuvas' AND detale.kaina <= ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC LIMIT 3`
+      },
+      {
+        type: 'Pele',
+        price: maxPrice * 0.02,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? 0 : gamingMinPrice * 0.02,
+        parameters: ['price'],
+        sql: `SELECT detale.*, kompiuterio_pele.*
+        FROM detale JOIN kompiuterio_pele ON detale.id_Detale = kompiuterio_pele.id_Kompiuterio_pele
+        WHERE detale.tipas = 'Kompiuterio pele' AND detale.kaina <= ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC LIMIT 1`
+      },
+      {
+        type: 'Klaviatura',
+        price: maxPrice * 0.03,
+        minPrice: req.query.type === 'browsing' ? 0 : req.query.type === 'studying' ? 0 : gamingMinPrice * 0.03,
+        parameters: ['price'],
+        sql: `SELECT detale.*, klaviatura.*
+        FROM detale JOIN klaviatura ON detale.id_Detale = klaviatura.id_Klaviatura
+        WHERE detale.tipas = 'Klaviatura' AND detale.kaina <= ? AND detale.kiekis >= 1 ORDER BY detale.kaina DESC LIMIT 1`
+      }
+    ];
+    const mboardparameters = {
+      cpuSocket, 
+      ramGen, 
+      pcieStand 
+    };
+    
+    const promises = components.map(c => {
+      // Declare tryQuery function outside of promise
+      const tryQuery = async (price, minPrice, decreaseRate = 0.5) => {
+        return new Promise((resolve, reject) => {
+          const queryParams = c.parameters.map(p => p === 'price' ? price : mboardparameters[p]);
+    
+          console.log('Executing query for:', c.type);
+          console.log('Parameters:', queryParams);
+          console.log(minPrice);
+    
+          connection.query(c.sql, queryParams, (error, rows) => {
+            if (error) {
+              reject(error);
+            } else {
+              const filteredRows = rows.filter(row => row.kaina >= minPrice);
+              if (filteredRows.length === 0) {
+                if (price <= minPrice || price < 1 || minPrice < 1) {
+                  reject(new Error(`${c.type} is Out of Stock`));  // Reject the promise with an error
+                } else {
+                  // Try again with lower price
+                  tryQuery(price * decreaseRate, minPrice * decreaseRate)
+                    .then(result => resolve(result))
+                    .catch(err => reject(err));
+                }
+              }
+              else {
+                const randomIndex = Math.floor(Math.random() * filteredRows.length);
+                const randomElement = filteredRows[randomIndex];
+    
+                resolve({ type: c.type, details: randomElement });
+              }
+            }
+          });
+        });
+      };
+    
+      // Return promise immediately invoking tryQuery function
+      return tryQuery(c.price, c.minPrice);
+    });
+    
+
+    const resultsWithoutMotherboard = await Promise.all(promises);
+
+    const results = [...resultsMotherboard, ...resultsWithoutMotherboard].filter(r => r != null);
+    console.log(results);
+
+    res.status(200).json(results);
+
+    connection.release();
+  } catch (err) {
+    res.status(500).json({ message: 'Klaida: Nėra pakankamai komponentų sudaryti rinkiniui. Kompiuterio generavimas nepavyko.' });
+
+  }
+};
+
+
 module.exports = {
     compatibility,
     addComputerSet,
@@ -324,4 +587,6 @@ module.exports = {
     updateComputerSet,
     checkComputerSetDuplication,
     getComputerSet,
+    generateComputer,
+    generateToComputerSetForm,
 }

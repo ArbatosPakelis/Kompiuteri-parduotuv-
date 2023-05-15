@@ -72,29 +72,29 @@ export default function PartsCreate() {
             .then((response) => {
                 if (response.ok) { // check if response is ok
                     response.json().then((data) => { // parse the response body as JSON
-                        if (data.status === 'success') {
+                        if (data.ans === true) {
                             Cookies.set('partMessage', 'errorCreate', { expires: 3/86400 });
                             window.location.href = '/detales?tipas=all';
+                        } else {
+                            const assignedValues = [additionalField1, additionalField2, additionalField3, additionalField4, additionalField5, additionalField6, additionalField7]
+                                .filter(value => value !== '');
+
+                            const params2 = new URLSearchParams({});
+                            assignedValues.forEach((value, index) => params2.set(`additionalField${index + 1}`, value));
+
+                            fetch(`/addPart?${params.toString()}`, {
+                                method: 'POST'
+                            }).then(response => response.json()).then(data => {
+                                const {id} = data;
+                                fetch(`/addSpecPart?iranga=${tipas}&${params2.toString()}&id=${id}`, {
+                                    method: 'POST'
+                                })
+                                window.location.href = '/detales?tipas=all';
+                            })
                         }
                     }).catch((error) => {
                         console.log(error);
                     });
-                } else {
-                    const assignedValues = [additionalField1, additionalField2, additionalField3, additionalField4, additionalField5, additionalField6, additionalField7]
-                        .filter(value => value !== '');
-
-                    const params2 = new URLSearchParams({});
-                    assignedValues.forEach((value, index) => params2.set(`additionalField${index + 1}`, value));
-
-                    fetch(`/addPart?${params.toString()}`, {
-                        method: 'POST'
-                    }).then(response => response.json()).then(data => {
-                        const {id} = data;
-                        fetch(`/addSpecPart?iranga=${tipas}&${params2.toString()}&id=${id}`, {
-                            method: 'POST'
-                        })
-                        window.location.href = '/detales?tipas=all';
-                    })
                 }
             })
             .catch((error) => {

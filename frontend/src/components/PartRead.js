@@ -11,15 +11,19 @@ export default function PartRead() {
         fetch(`/getPart/${id}`)
             .then((response) => response.json())
             .then((data) => {
-                setPartData(data);
-                return data;
+                setPartData(data[0]);
+                return data[1];
             })
             .then((data) => {
-                const type = data[0].tipas;
+                const type = data;
                 return fetch(`/getPartSpec/${type}/${id}`)
                     .then((response) => response.json())
                     .then((extendedData) => {
+                        if(extendedData.length === 0){
+                            setExtendedPartData(['-']);
+                        } else{
                         setExtendedPartData(extendedData);
+                        }
                         return type;
                     });
             })
@@ -35,59 +39,59 @@ export default function PartRead() {
     return (
         <div className='content'>
             <h1>Detalė</h1>
-            {partData.map((data) => {
-                return (
                     <div>
                         <div className='innerParts'>
                             <p>
-                                <b>Pavadinimas:</b> {data.pavadinimas}
+                                <b>Pavadinimas:</b> {partData.pavadinimas}
                             </p>
                             <p>
-                                <b>Gamintojas:</b> {data.gamintojas}
+                                <b>Gamintojas:</b> {partData.gamintojas}
                             </p>
                             <p>
-                                <b>Kaina:</b> {data.kaina}
+                                <b>Kaina:</b> {partData.kaina}
                             </p>
                             <p>
-                                <b>Aprašymas:</b> {data.aprasymas}
+                                <b>Aprašymas:</b> {partData.aprasymas}
                             </p>
                             <p>
-                                <b>Išleidimo data:</b> {(data.isleidimo_data).substring(0, 10)}
+                                <b>Išleidimo data:</b> {partData && partData.isleidimo_data && partData.isleidimo_data.substring(0, 10)}
                             </p>
                             <p>
-                                <b>Kiekis:</b> {data.kiekis}
+                                <b>Kiekis:</b> {partData.kiekis}
                             </p>
                             <p>
-                                <b>Spalva:</b> {data.spalva}
+                                <b>Spalva:</b> {partData.spalva}
                             </p>
                             <p>
-                                <b>Tipas:</b> {data.tipas}
+                                <b>Tipas:</b> {partData.tipas}
                             </p>
+
                             {Array.isArray(extendedPartData) && extendedPartData.map((extendedData) => {
-                                switch (data.tipas){
+                                console.log(partData.tipas);
+                                switch (partData.tipas){
                                     case "Motinine plokste":
                                         return (
                                             <div>
                                                 <p>
-                                                    <b>CPU lizdo standartas:</b> {extendedData.CPU_lizdo_standartas}
+                                                    <b>CPU lizdo standartas:</b> {extendedData.CPU_lizdo_standartas ? extendedData.CPU_lizdo_standartas : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>CPU lizdų kiekis:</b> {extendedData.CPU_lizdu_kiekis}
+                                                    <b>CPU lizdų kiekis:</b> {extendedData.CPU_lizdu_kiekis ? extendedData.CPU_lizdu_kiekis : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>M2 kiekis:</b> {extendedData.M2_kiekis}
+                                                    <b>M2 kiekis:</b> {extendedData.M2_kiekis ? extendedData.M2_kiekis : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>SATA kiekis:</b> {extendedData.SATA_kiekis}
+                                                    <b>SATA kiekis:</b> {extendedData.SATA_kiekis ? extendedData.SATA_kiekis : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>PCIe lizdų kiekis:</b> {extendedData.PCIe_lizdu_kiekis}
+                                                    <b>PCIe lizdų kiekis:</b> {extendedData.PCIe_lizdu_kiekis ? extendedData.PCIe_lizdu_kiekis : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>RAM karta:</b> {extendedData.RAM_karta}
+                                                    <b>RAM karta:</b> {extendedData.RAM_karta ? extendedData.RAM_karta : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>PCIe standartas:</b> {extendedData.PCIe_standartas}
+                                                    <b>PCIe standartas:</b> {extendedData.PCIe_standartas ? extendedData.PCIe_standartas : "-"}
                                                 </p>
                                             </div>
                                         )
@@ -95,16 +99,16 @@ export default function PartRead() {
                                         return (
                                             <div>
                                                 <p>
-                                                    <b>VRAM kiekis:</b> {extendedData.VRAM_kiekis}
+                                                    <b>VRAM kiekis:</b> {extendedData.VRAM_kiekis ? extendedData.VRAM_kiekis : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>VRAM dažnis:</b> {extendedData.VRAM_daznis}
+                                                    <b>VRAM dažnis:</b> {extendedData.VRAM_daznis ? extendedData.VRAM_daznis : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>PCIe standartas:</b> {extendedData.PCIe_standartas}
+                                                    <b>PCIe standartas:</b> {extendedData.PCIe_standartas ? extendedData.PCIe_standartas : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>Jungtis:</b> {extendedData.jungtis}
+                                                    <b>Jungtis:</b> {extendedData.jungtis ? extendedData.jungtis : "-"}
                                                 </p>
                                             </div>
                                         )
@@ -112,13 +116,13 @@ export default function PartRead() {
                                         return (
                                             <div>
                                                 <p>
-                                                    <b>CPU lizdo standartas:</b> {extendedData.CPU_lizdo_standartas}
+                                                    <b>CPU lizdo standartas:</b> {extendedData.CPU_lizdo_standartas ? extendedData.CPU_lizdo_standartas : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>Dažnis:</b> {extendedData.daznis}
+                                                    <b>Dažnis:</b> {extendedData.daznis ? extendedData.daznis : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>Branduolių kiekis:</b> {extendedData.branduoliu_kiekis}
+                                                    <b>Branduolių kiekis:</b> {extendedData.branduoliu_kiekis ? extendedData.branduoliu_kiekis : "-"}
                                                 </p>
                                             </div>
                                         )
@@ -126,13 +130,13 @@ export default function PartRead() {
                                         return (
                                             <div>
                                                 <p>
-                                                    <b>Atkūrimo dažnis:</b> {extendedData.atkurimo_daznis}
+                                                    <b>Atkūrimo dažnis:</b> {extendedData.atkurimo_daznis ? extendedData.atkurimo_daznis : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>Dydis:</b> {extendedData.dydis}
+                                                    <b>Dydis:</b> {extendedData.dydis ? extendedData.dydis : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>Panelė:</b> {extendedData.panele}
+                                                    <b>Panelė:</b> {extendedData.panele ? extendedData.panele : "-"}
                                                 </p>
                                             </div>
                                         )
@@ -140,13 +144,13 @@ export default function PartRead() {
                                         return (
                                             <div>
                                                 <p>
-                                                    <b>Galia:</b> {extendedData.galia}
+                                                    <b>Galia:</b> {extendedData.galia ? extendedData.galia : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>Laidų kontrolė:</b> {extendedData.laidu_kontrole}
+                                                    <b>Laidų kontrolė:</b> {extendedData.laidu_kontrole === 0 ? "Yra" : (extendedData.laidu_kontrole === 1 ? "Nėra" : "-")}
                                                 </p>
                                                 <p>
-                                                    <b>Sertifikatas:</b> {extendedData.sertifikatas}
+                                                    <b>Sertifikatas:</b> {extendedData.sertifikatas === 0 ? "Yra" : (extendedData.sertifikatas === 1 ? "Nėra" : "-")}
                                                 </p>
                                             </div>
                                         )
@@ -154,7 +158,7 @@ export default function PartRead() {
                                         return (
                                             <div>
                                                 <p>
-                                                    <b>Rūšis:</b> {extendedData.tipas}
+                                                    <b>Rūšis:</b> {extendedData.tipas ? extendedData.tipas : "-"}
                                                 </p>
                                             </div>
                                         )
@@ -162,10 +166,10 @@ export default function PartRead() {
                                         return (
                                             <div>
                                                 <p>
-                                                    <b>Aukštis:</b> {extendedData.aukstis}
+                                                    <b>Aukštis:</b> {extendedData.aukstis ? extendedData.aukstis : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>Aušinimo vamzdžių kiekis:</b> {extendedData.ausinimo_vamzdziu_kiekis}
+                                                    <b>Aušinimo vamzdžių kiekis:</b> {extendedData.ausinimo_vamzdziu_kiekis ? extendedData.ausinimo_vamzdziu_kiekis : "-"}
                                                 </p>
                                             </div>
                                         )
@@ -173,13 +177,13 @@ export default function PartRead() {
                                         return (
                                             <div>
                                                 <p>
-                                                    <b>Talpa:</b> {extendedData.talpa}
+                                                    <b>Talpa:</b> {extendedData.talpa ? extendedData.talpa : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>Dažnis:</b> {extendedData.daznis}
+                                                    <b>Dažnis:</b> {extendedData.daznis ? extendedData.daznis : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>RAM karta:</b> {extendedData.RAM_karta}
+                                                    <b>RAM karta:</b> {extendedData.RAM_karta ? extendedData.RAM_karta : "-"}
                                                 </p>
                                             </div>
                                         )
@@ -187,7 +191,7 @@ export default function PartRead() {
                                         return (
                                             <div>
                                                 <p>
-                                                    <b>Ar laidinė?</b> {extendedData.laidine}
+                                                    <b>Ar laidinė?</b> {extendedData.laidine === 0 ? "Taip" : (extendedData.laidine === 1 ? "Ne" : "-")}
                                                 </p>
                                             </div>
                                         )
@@ -195,10 +199,10 @@ export default function PartRead() {
                                         return (
                                             <div>
                                                 <p>
-                                                    <b>Ilgis:</b> {extendedData.ilgis}
+                                                    <b>Ilgis:</b> {extendedData.ilgis ? extendedData.ilgis : "-"}
                                                 </p>
                                                 <p>
-                                                    <b>Rūšis:</b> {extendedData.tipas}
+                                                    <b>Rūšis:</b> {extendedData.tipas ? extendedData.tipas : "-"}
                                                 </p>
                                             </div>
                                         )
@@ -207,10 +211,9 @@ export default function PartRead() {
                                 }
                             })}
                         </div>
-                        <br/><br/><button className='atsiliepimai' onClick={() => {window.location.href = `/detales/${data.id_Detale}/atsiliepimai`}}>Atsiliepimai</button><br/><br/>
+                        <br/><br/><button className='atsiliepimai' onClick={() => {window.location.href = `/detales/${partData.id_Detale}/atsiliepimai`}}>Atsiliepimai</button><br/><br/>
                     </div>
-                );
-            })}
+
 
             <div className='content'>
                 <br/><br/><hr/><h2 style={{ marginTop: '10px', marginBottom: '10px' }}>Rekomendacijos</h2><hr/>
