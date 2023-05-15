@@ -310,8 +310,8 @@ const unlinkPartFromBuild= (req, res) => {
   pool.getConnection((err, connection) => {
     if (err) throw err;
     let sqlQuery = '';
-    sqlQuery = 'DELETE FROM rinkinio_detale WHERE fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=' 
-    + req.query.fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys + " AND fk_Detaleid_Detale=" + req.query.fk_Detaleid_Detale;
+    sqlQuery = 'SELECT fk_Prekeid_Preke as id FROM kompiuterio_rinkinys WHERE id_Kompiuterio_rinkinys=' 
+    + req.query.fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys;
 
     connection.query(sqlQuery, (err, rows) => {
       if (err) {
@@ -319,8 +319,26 @@ const unlinkPartFromBuild= (req, res) => {
         connection.release(); // Release the connection back to the pool in case of an error
         return;
       }
+      console.log(rows)
+      if(rows[0].id === null){
+        sqlQuery = 'DELETE FROM rinkinio_detale WHERE fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=' 
+        + req.query.fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys + " AND fk_Detaleid_Detale=" + req.query.fk_Detaleid_Detale;
+    
+        connection.query(sqlQuery, (err, rowz) => {
+          if (err) {
+            console.log(err);
+            connection.release(); // Release the connection back to the pool in case of an error
+            return;
+          }
+          res.send(rowz);
+        })
+      }
+      else{
+        res.status(200).json({
+          ans:"rinkinys yra perkamas",
+        });
+      }
 
-      res.send(rows);
       connection.release(); // Release the connection back to the pool after sending the response
     });
   });
