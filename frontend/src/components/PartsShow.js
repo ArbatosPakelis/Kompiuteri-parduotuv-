@@ -165,7 +165,7 @@ export default function PartsShow() {
                             {/*)*/}
                             { rinkinys !== null &&
                             <p>
-                                <button onClick={() => {window.location.href = `/rinkiniai/${rinkinys}?id_Detale=${data.id_Detale}`}}>Pridėti į rinkinį</button>
+                                <button onClick={() => {Cookies.set('partMessage', 'partsHREF', { expires: 3/86400 }); window.location.href = `/rinkiniai/${rinkinys}?id_Detale=${data.id_Detale}`}}>Pridėti į rinkinį</button>
                             </p>
                             }
                         </div>

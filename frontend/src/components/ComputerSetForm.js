@@ -35,8 +35,6 @@ export default function ComputerSetForm() {
 
     }
 
-    
-
     // Update total price whenever the components change
     useEffect(() => {
       const parts = [motherboard, cpu, ram, gpu, dataDisk, powerSuply, cooler, monitor, mouse, keyboard];
@@ -48,7 +46,8 @@ export default function ComputerSetForm() {
         const params = new URLSearchParams(window.location.search);
         setIDDetale(params.get('id_Detale'));
 
-        if(params.get('id_Detale') !== null) {
+        const partMessage = Cookies.get('partMessage');
+        if(partMessage === 'partsHREF') {
             fetch(`/computerSet/updateComputerSet?kiekis=1&fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=${id}&fk_Detaleid_Detale=${params.get('id_Detale')}`, {
                 method: 'POST'
             })
@@ -250,7 +249,6 @@ export default function ComputerSetForm() {
                                         {keyboard.pavadinimas}
                                     </p>
                                     <button onClick={() => (onClick(computerSetData[0].id_Kompiuterio_rinkinys, keyboard.id_Detale))} style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
-                                    <button href=""  style={{fontSize:20, marginRight:'auto'}}>&#10005;</button>
                                 </div>)
                                  : (<button onClick={() => {window.location.href = `/detales?tipas=klaviatura&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
                             </li>
