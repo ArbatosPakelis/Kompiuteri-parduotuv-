@@ -40,17 +40,13 @@ export default function ComputerSetList() {
             {/* {message && <div style={{ color: message.includes('mingai') ? 'green' : 'red' }}>{message}</div>} */}
             {computerSetData.map((data) => {
                 return (
-                    <div className='dalis' key={data.id_Detale}>
+                    <div className='rinkinys' key={data.id_Detale}>
                         <div className='innerParts'>
                             <div className='dalis-name'>
                                 <a className='dalis-a' href={`/rinkiniai/${data.id_Kompiuterio_rinkinys}`}>
                                     {data.pavadinimas}
                                 </a>
                             </div>
-                        </div>
-                        <div className='outerParts'>
-                            <button className='red-sal' onClick={() => {window.location.href = `/`}}>Redaguoti</button>
-                            <button className='red-sal' onClick={() => onDelete(data.id_Detale)}>Šalinti</button>
                         </div>
                     </div>
                 );

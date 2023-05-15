@@ -7,11 +7,13 @@ export default function PartsShow() {
     const [partsData, setPartsData] = useState([]);
     const [message, setMessage] = useState('');
     const location              = useLocation();
+    const [rinkinys, setRinkinys] = useState('');
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const tipas  = params.get('tipas');
         const url    = `/getAllParts?tipas=${tipas}`;
+        setRinkinys(params.get('rinkinys'));
 
         fetch(url)
             .then((response) => response.json())
@@ -151,6 +153,11 @@ export default function PartsShow() {
                                 </Form.Field>
                             </Form>
                             {/*)*/}
+                            { rinkinys !== null &&
+                            <p>
+                                <button onClick={() => {window.location.href = `/rinkiniai/${rinkinys}?id_Detale=${data.id_Detale}`}}>Pridėti į rinkinį</button>
+                            </p>
+                            }
                         </div>
                         {/*Cookies.get('sessionType') === 'Admin' && (*/}
                         <div className='outerParts'>

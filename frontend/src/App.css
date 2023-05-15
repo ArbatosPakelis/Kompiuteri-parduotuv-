@@ -47,7 +47,7 @@
     margin: 5px;
     padding:30px 0;
 }
-.dalis a.dalis-a{
+a.dalis-a{
     color: red;
     text-transform: uppercase;
     font-weight:700;
@@ -74,7 +74,14 @@
     margin: 20px 0;
     cursor: pointer;
 }
-button.prideti, button.palyginti {
+.rinkinys{
+    border: 1px solid whitesmoke;
+    width: 20%;
+    display: inline-block;
+    margin: 5px;
+    padding:30px 0;
+}
+button.prideti {
     background-color: whitesmoke;
     text-decoration: none;
     color: #000;

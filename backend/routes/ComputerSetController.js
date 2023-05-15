@@ -138,7 +138,7 @@ const updateComputerSet = (req, res) => {
   const params = req.query // get all params
   pool.getConnection((err, connection) => {
       if(err) throw err
-      
+      console.log(params)
       const keys = Object.keys(params) // get param names
       let line1 = ""
       for (a in keys){ // merge params names into a single string, but still has a extra comma at the end
@@ -158,19 +158,18 @@ const updateComputerSet = (req, res) => {
 
       connection.query(sql, (err, result) => {
       connection.release() // return the connection to pool
-      if (!err) {
-          const id = result.insertId;
-          res.setHeader('Set-Cookie', 'partMessage=successADD; Max-Age=3');
-          res.json({ id });
-      }
-      else if (err.errno === 1062) {
-          res.send('duplicate entry, try to think of new id')
-      }
-      else {
-          console.log(err)
-          res.send(err)
-      }
-
+        if (!err) {
+            const id = result.insertId;
+            res.setHeader('Set-Cookie', 'partMessage=successADD; Max-Age=3');
+            res.json({ id });
+        }
+        else if (err.errno === 1062) {
+            res.send('duplicate entry, try to think of new id')
+        }
+        else {
+            console.log(err)
+            res.send(err)
+        }
       });
   });
 }
@@ -274,13 +273,14 @@ const getComputerSets= (req, res) => {
 }
 
 // get ONE set
-const getComputerSet= (req, res) => {
+const getComputerSet = (req, res) => {
   pool.getConnection((err, connection) => {
     if (err) throw err;
+
     let sqlQuery = `SELECT detale.* from kompiuterio_rinkinys 
     LEFT JOIN rinkinio_detale on rinkinio_detale.fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=kompiuterio_rinkinys.id_Kompiuterio_rinkinys
     LEFT JOIN detale ON rinkinio_detale.fk_Detaleid_Detale=detale.id_Detale 
-    WHERE id_Kompiuterio_rinkinys=`+ req.query.id_Kompiuterio_rinkinys + `;`;
+    WHERE id_Kompiuterio_rinkinys=${req.query.id_Kompiuterio_rinkinys};`;
 
     connection.query(sqlQuery, (err, rows) => {
       if (err) {

@@ -3,6 +3,7 @@ import ComputerSetApi from '../Apis/ComputerSetApi';
 import {useLocation, useParams} from "react-router-dom";
 import {Button, Form} from "semantic-ui-react";
 import { TextField } from '@mui/material';
+import Cookies from "js-cookie";
 export default function ComputerSetForm() {
     const { id } = useParams(); // take id from page URL
     const [computerSetData, setComputerSet] = useState(null);
@@ -20,6 +21,9 @@ export default function ComputerSetForm() {
     const [loading, setLoading] = useState(true); // New loading state
     const [problems, setProblems] = useState(null);
     const [success, setSuccess] = useState(false);
+    const [Detale, setIDDetale] = useState('');
+    const [message, setMessage] = useState('');
+
     const magic = async () => {
         const setApi = new ComputerSetApi();
         const response = await setApi.compatibility(id);
@@ -38,6 +42,33 @@ export default function ComputerSetForm() {
       setTotalPrice(price);
     }, [motherboard, cpu, ram, gpu, dataDisk, powerSuply, cooler]);
     useEffect(() => {
+
+        const params = new URLSearchParams(window.location.search);
+        setIDDetale(params.get('id_Detale'));
+
+        if(params.get('id_Detale') !== null) {
+            fetch(`/computerSet/updateComputerSet?kiekis=1&fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys=${id}&fk_Detaleid_Detale=${params.get('id_Detale')}`, {
+                method: 'POST'
+            })
+                .then((response) => {
+                    response.json().then((data) => { // parse the response body as JSON
+                        const partMessage = Cookies.get('partMessage');
+                        if(partMessage === 'successADD')
+                        {
+                            setMessage('Sėkmingai pridėta detalė!');
+                            setTimeout(() => {
+                                setMessage('');
+                            }, 2000);
+                        }
+                    }).catch((error) => {
+                        console.log(error);
+                    });
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        }
+
     const fetchData = async () => {
       try {
         const setApi = new ComputerSetApi();
@@ -69,7 +100,7 @@ export default function ComputerSetForm() {
     fetchData();
   }, [id]);
 
-    
+
 
 
     if (loading) {
@@ -78,6 +109,7 @@ export default function ComputerSetForm() {
     
     return (
             <div style={{ alignContent:'center', paddingLeft:100}}>
+                {message && <div style={{ color: message.includes('mingai') ? 'green' : 'red' }}>{message}</div>}
                     <center>
                         <h2 style={{paddingBottom:50, paddingTop:50}}>
                             {computerSetData ? computerSetData[0].pavadinimas : 'Loading...'}
@@ -95,7 +127,7 @@ export default function ComputerSetForm() {
                                     </p>
                                     <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
-                                 : (<button href="" >Pridėti</button>)}
+                                 : (<button onClick={() => {window.location.href = `/detales?tipas=procesorius&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
                             </li>
                             <hr/>
                             <li style={{marginTop:30, display:'flex'}}>
@@ -107,7 +139,7 @@ export default function ComputerSetForm() {
                                     </p>
                                     <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
-                                 : (<button href="" >Pridėti</button>)}
+                                 : (<button onClick={() => {window.location.href = `/detales?tipas=ausintuvas&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
                             </li>
                             <hr/>
                             <li style={{marginTop:30, display:'flex'}}>
@@ -119,7 +151,7 @@ export default function ComputerSetForm() {
                                     </p>
                                     <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
-                                 : (<button href="" >Pridėti</button>)}
+                                 : (<button onClick={() => {window.location.href = `/detales?tipas=motinine_plokste&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
                             </li>
                             <hr/>
                             <li style={{marginTop:30, display:'flex'}}>
@@ -131,7 +163,7 @@ export default function ComputerSetForm() {
                                     </p>
                                     <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
-                                 : (<button href="" >Pridėti</button>)}
+                                 : (<button onClick={() => {window.location.href = `/detales?tipas=atmintis&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
                             </li>
                             <hr/>
                             <li style={{marginTop:30, display:'flex'}}>
@@ -143,7 +175,7 @@ export default function ComputerSetForm() {
                                     </p>
                                     <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
-                                 : (<button href="" >Pridėti</button>)}
+                                 : (<button onClick={() => {window.location.href = `/detales?tipas=isorine_atmintis&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
                             </li>
                             <hr/>
                             <li style={{marginTop:30, display:'flex'}}>
@@ -155,7 +187,7 @@ export default function ComputerSetForm() {
                                     </p>
                                     <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
-                                 : (<button href="" >Pridėti</button>)}
+                                 : (<button onClick={() => {window.location.href = `/detales?tipas=vaizdo_plokste&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
                             </li>
                             <hr/>
                             <li style={{marginTop:30, display:'flex'}}>
@@ -167,7 +199,7 @@ export default function ComputerSetForm() {
                                     </p>
                                     <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
-                                 : (<button href="" >Pridėti</button>)}
+                                 : (<button onClick={() => {window.location.href = `/detales?tipas=maitinimo_blokas&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
                             </li>
                             <hr/>
                             <li style={{marginTop:30, display:'flex'}}>
@@ -179,7 +211,7 @@ export default function ComputerSetForm() {
                                     </p>
                                     <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
-                                 : (<button href="" >Pridėti</button>)}
+                                 : (<button onClick={() => {window.location.href = `/detales?tipas=monitorius&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
                             </li>
                             <hr/>
                             <li style={{marginTop:30, display:'flex'}}>
@@ -191,7 +223,7 @@ export default function ComputerSetForm() {
                                     </p>
                                     <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
-                                 : (<button href="" >Pridėti</button>)}
+                                 : (<button onClick={() => {window.location.href = `/detales?tipas=kompiuterio_pele&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
                             </li>
                             <hr/>
                             <li style={{marginTop:30, display:'flex'}}>
@@ -203,7 +235,7 @@ export default function ComputerSetForm() {
                                     </p>
                                     <button href=""  style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
-                                 : (<button href="" >Pridėti</button>)}
+                                 : (<button onClick={() => {window.location.href = `/detales?tipas=klaviatura&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
                             </li>
                             <hr/>
                         </ul>
