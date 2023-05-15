@@ -436,7 +436,7 @@ const setPart = (req, res) => {
         }
         // check if the part is assigned to the 'preke' table
         const isCurrentPartBeingBought = `SELECT COUNT(*) as count FROM detale
-                              INNER JOIN rinkinio_detale ON detale.fk_Rinkinio_detaleid_Rinkinio_detale = rinkinio_detale.id_Rinkinio_detale
+                              INNER JOIN rinkinio_detale ON detale.id_Detale = rinkinio_detale.fk_Detaleid_Detale
                               INNER JOIN kompiuterio_rinkinys ON rinkinio_detale.fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys = kompiuterio_rinkinys.id_Kompiuterio_rinkinys
                               INNER JOIN preke ON preke.id_Preke = kompiuterio_rinkinys.fk_Prekeid_Preke
                               WHERE detale.${name} = ${id};`;
@@ -449,41 +449,15 @@ const setPart = (req, res) => {
                 const count = checkResult[0].count;
                 var foreignID = -1;
                 if (count === 0) {
-                    // if the part is not assigned to the 'preke' table, delete it from the 'kompiuterio rinkinys' and 'rinkinio_detale' table if it exists
-                    const deleteFromBuilds = `SELECT detale.fk_Rinkinio_detaleid_Rinkinio_detale
-                                           FROM detale
-                                           WHERE id_Detale = ${id};`
+                    // if the part is not assigned to the 'preke' table, delete it from 'rinkinio_detale' table if it exists
+                    const deleteFromBuilds = `DELETE FROM rinkinio_detale WHERE fk_Detaleid_Detale = ${id};`
                     connection.query(deleteFromBuilds, (selErr, selResult) => {
                         if (!selErr) {
-                            foreignID = selResult[0].fk_Rinkinio_detaleid_Rinkinio_detale;
-
-                            const updateSql = `UPDATE detale
-                                    SET fk_Rinkinio_detaleid_Rinkinio_detale = NULL
-                                    WHERE id_Detale = ${id};`
-
-                            connection.query(updateSql, (updateErr, updateResult) => {
-                                if (!updateErr) {
-                                    console.log(`Detale has been updated to be NULL`);
-                                } else {
-                                    console.log(updateErr);
-                                }
-                            });
-
-                            const deleteSql = `DELETE
-                                               FROM rinkinio_detale 
-                                               WHERE id_Rinkinio_detale = ${foreignID};`
-                            connection.query(deleteSql, (deleteErr, deleteResult) => {
-                                if (!deleteErr) {
-                                    console.log(`Part has been deleted`);
-                                } else {
-                                    console.log(deleteErr);
-                                }
-                            });
+                            console.log(`Detale from Rinkinio detale has been deleted`);
 
                             const sql = 'UPDATE detale SET ' + line1.substring(0, line1.length - 2) + ' WHERE ' + name + " = " + id + ';'
                             connection.query(sql , (err, rows) => {
                                 connection.release() // return the connection to pool
-
                                 if(!err) {
                                     res.setHeader('Set-Cookie', 'partMessage=successEDIT; Max-Age=3');
                                     res.send(`Part has been updated`)
@@ -493,8 +467,6 @@ const setPart = (req, res) => {
                                     res.send(err)
                                 }
                             })
-
-
                         } else {
                             console.log(selErr);
                         }
