@@ -46,6 +46,16 @@ export default function PartsShow() {
                     setTimeout(() => {
                         setMessage('');
                     }, 2000);
+                } else if (partMessage === 'partBeingBought') {
+                    setMessage('Nepavyko atnaujinti detalės. Ji yra perkama.');
+                    setTimeout(() => {
+                        setMessage('');
+                    }, 2000);
+                } else if (partMessage === 'partSetBeingBought') {
+                    setMessage('Nepavyko atnaujinti detalės. Ji yra priskirta rinkiniui, kuris yra perkamas.');
+                    setTimeout(() => {
+                        setMessage('');
+                    }, 2000);
                 }
             })
             .catch((error) => {

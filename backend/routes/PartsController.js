@@ -434,47 +434,58 @@ const setPart = (req, res) => {
                 id = params[keys[a]];
             }
         }
-        // check if the part is assigned to the 'preke' table
-        const isCurrentPartBeingBought = `SELECT COUNT(*) as count FROM detale
+        // check if the detale is assigned to 'kompiuterio rinkinys' and 'preke' table
+        const isCurrentPartsSetBeingBought = `SELECT COUNT(*) as count FROM detale
                               INNER JOIN rinkinio_detale ON detale.id_Detale = rinkinio_detale.fk_Detaleid_Detale
                               INNER JOIN kompiuterio_rinkinys ON rinkinio_detale.fk_Kompiuterio_rinkinysid_Kompiuterio_rinkinys = kompiuterio_rinkinys.id_Kompiuterio_rinkinys
                               INNER JOIN preke ON preke.id_Preke = kompiuterio_rinkinys.fk_Prekeid_Preke
                               WHERE detale.${name} = ${id};`;
 
-        connection.query(isCurrentPartBeingBought, (checkErr, checkResult) => {
+        connection.query(isCurrentPartsSetBeingBought, (checkErr, checkResult) => {
             if (checkErr) {
                 console.log(checkErr);
                 res.send(checkErr);
             } else {
                 const count = checkResult[0].count;
-                var foreignID = -1;
                 if (count === 0) {
-                    // if the part is not assigned to the 'preke' table, delete it from 'rinkinio_detale' table if it exists
-                    const deleteFromBuilds = `DELETE FROM rinkinio_detale WHERE fk_Detaleid_Detale = ${id};`
-                    connection.query(deleteFromBuilds, (selErr, selResult) => {
-                        if (!selErr) {
-                            console.log(`Detale from Rinkinio detale has been deleted`);
-
-                            const sql = 'UPDATE detale SET ' + line1.substring(0, line1.length - 2) + ' WHERE ' + name + " = " + id + ';'
-                            connection.query(sql , (err, rows) => {
-                                connection.release() // return the connection to pool
-                                if(!err) {
-                                    res.setHeader('Set-Cookie', 'partMessage=successEDIT; Max-Age=3');
-                                    res.send(`Part has been updated`)
-                                    console.log(`Part has been updated`)
+                    // check if the detale is assigned to 'preke' table
+                    const isCurrentPartBeingBought = `SELECT COUNT(*) as count FROM detale
+                                  INNER JOIN preke ON detale.id_Detale = preke.fk_Detaleid_Detale
+                                  WHERE detale.${name} = ${id};`;
+                    connection.query(isCurrentPartBeingBought, (checkErr, checkResult) => {
+                        const count = checkResult[0].count;
+                        if(count === 0){
+                            // if the part is not assigned to the 'preke' table, delete it from 'rinkinio_detale' table if it exists
+                            const deleteFromBuilds = `DELETE FROM rinkinio_detale WHERE fk_Detaleid_Detale = ${id};`
+                            connection.query(deleteFromBuilds, (selErr, selResult) => {
+                                if (!selErr) {
+                                    const sql = 'UPDATE detale SET ' + line1.substring(0, line1.length - 2) + ' WHERE ' + name + " = " + id + ';'
+                                    connection.query(sql , (err, rows) => {
+                                        connection.release()
+                                        if(!err) {
+                                            res.setHeader('Set-Cookie', 'partMessage=successEDIT; Max-Age=3');
+                                            res.send(`Part has been updated`)
+                                            console.log(`Part has been updated`)
+                                        } else {
+                                            console.log(err)
+                                            res.send(err)
+                                        }
+                                    })
                                 } else {
-                                    console.log(err)
-                                    res.send(err)
+                                    console.log(selErr);
                                 }
-                            })
+                            });
                         } else {
-                            console.log(selErr);
+                            res.setHeader('Set-Cookie', 'partMessage=partBeingBought; Max-Age=3');
+                            res.send(
+                                `Part cannot be updated. It is being bought.`
+                            );
                         }
                     });
                 } else {
-                    // if the part is assigned to the 'preke' table, do not update and send an error message
+                    res.setHeader('Set-Cookie', 'partMessage=partSetBeingBought; Max-Age=3');
                     res.send(
-                        `Part cannot be updated. It is being bought.`
+                        `Part cannot be updated. It is assigned to computer set which is being bought.`
                     );
                 }
             }
