@@ -1,34 +1,47 @@
 import React from 'react';
-import {Link} from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
-export default function NavBar(){
-    return(
-        <div className="navbar">
-            <nav role="navigation">
-                <ul>
-                    <li><Link to="/">Pagrindinis</Link></li>
-                    <li><Link to="/detales?tipas=all">Detalės</Link>
-                        <ul className="dropdown">
-                            <li><Link to="/detales?tipas=motinine_plokste">Motininė plokštė</Link></li>
-                            <li><Link to="/detales?tipas=vaizdo_plokste">Vaizdo plokštė</Link></li>
-                            <li><Link to="/detales?tipas=procesorius">Procesorius</Link></li>
-                            <li><Link to="/detales?tipas=maitinimo_blokas">Maitinimo blokas</Link></li>
-                            <li><Link to="/detales?tipas=kompiuterio_pele">Kompiuterio pėlė</Link></li>
-                            <li><Link to="/detales?tipas=atmintis">Atmintis</Link></li>
-                            <li><Link to="/detales?tipas=klaviatura">Klaviatūra</Link></li>
-                            <li><Link to="/detales?tipas=monitorius">Monitorius</Link></li>
-                            <li><Link to="/detales?tipas=ausintuvas">Aušintuvas</Link></li>
-                            <li><Link to="/detales?tipas=isorine_atmintis">Išorinė atmintis</Link></li>
-                            <li><Link to="/detales?tipas=kabelis">Kabelis</Link></li>
-                        </ul>
-                    </li>
-                    <li><Link to="/rinkiniai">Rinkiniai</Link></li>
-                    <li><Link to="/detales/lyginti">Detalių palyginimas</Link></li>
-                </ul>
-            </nav>
-            <div className="logo">
-                PC BUILDS
-            </div>
-        </div>
-    )
+export default function NavBar() {
+    const isActiveLink = (path) => {
+        const currentPath = window.location.pathname;
+        if (path === "/detales/lyginti") {
+          // Check if the current path starts with "/detales" but is not exactly "/detales/lyginti"
+          return currentPath.startsWith("/detales") && currentPath !== "/detales/lyginti";
+        } else {
+          return currentPath === path;
+        }
+      };
+
+  return (
+    <div className="navbar">
+      <nav role="navigation">
+        <ul>
+          <li>
+            <NavLink exact to="/" className="nav-link" activeClassName="active">
+              Pagrindinis
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/lyginti" className={`nav-link ${isActiveLink('/detales/lyginti') && 'active'}`}>
+              Detalių palyginimas
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/rinkiniai" className="nav-link" activeClassName="active">
+              Rinkiniai
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/detales" className={`nav-link ${isActiveLink('/detales') && 'active'}`}>
+              Detalės
+            </NavLink>
+            <ul className="dropdown">
+              {/* Dropdown items */}
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <div className="logo">PC BUILDS</div>
+    </div>
+  );
 }

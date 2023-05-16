@@ -140,7 +140,7 @@ export default function ComputerSetForm() {
                                     <p>
                                         {cpu.pavadinimas}
                                     </p>
-                                    <button onClick={() => (onClick(computerSetData[0].id_Kompiuterio_rinkinys, cpu.id_Detale))} style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
+                                    <button  onClick={() => (onClick(computerSetData[0].id_Kompiuterio_rinkinys, cpu.id_Detale))} style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
                                  : (<button onClick={() => {window.location.href = `/detales?tipas=procesorius&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
                             </li>
@@ -250,7 +250,7 @@ export default function ComputerSetForm() {
                                     </p>
                                     <button onClick={() => (onClick(computerSetData[0].id_Kompiuterio_rinkinys, keyboard.id_Detale))} style={{fontSize:20, marginLeft:'auto'}}>&#10005;</button>
                                 </div>)
-                                 : (<button onClick={() => {window.location.href = `/detales?tipas=klaviatura&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
+                                 : (<button  onClick={() => {window.location.href = `/detales?tipas=klaviatura&rinkinys=${computerSetData[0].id_Kompiuterio_rinkinys}`}} >Pridėti</button>)}
                             </li>
                             <hr/>
                         </ul>
@@ -259,7 +259,7 @@ export default function ComputerSetForm() {
                 <div style={{textAlign:"center"}}>
                     <p style={{color:'green', marginLeft:0, marginTop:0}}>{success === true ? "Rinkinys yra suderinamas": ""}</p>
                     <p style={{color:'red', marginLeft:0, marginTop:50}}>{problems}</p>
-                    <button onClick={magic} style={{marginBottom:20}}>Tikrinti suderinamumą</button>
+                    <button  className='red-sal' onClick={magic} style={{marginBottom:20}}>Tikrinti suderinamumą</button>
                 </div>
         </div>
     );

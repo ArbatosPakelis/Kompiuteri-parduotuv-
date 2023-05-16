@@ -20,6 +20,7 @@ export default function CompareParts() {
   const [selectedPart2, setSelectedPart2] = useState(null);
   const [selectedType, setSelectedType] = useState(partTypes[0]);
   const [differences, setDifferences] = useState([]);
+  const [showDifferences, setShowDifferences] = useState(false); // New state variable
 
   useEffect(() => {
     fetch('/getAllParts')
@@ -44,6 +45,7 @@ export default function CompareParts() {
         .then((response) => response.json())
         .then((data) => {
           setDifferences(data);
+          setShowDifferences(true); // Show the differences section when comparing
         })
         .catch((error) => {
           console.error('Error:', error);
@@ -90,46 +92,47 @@ export default function CompareParts() {
               key: part.id_Detale,
               text: part.pavadinimas,
               value: part.id_Detale,
-    disabled: selectedPart1 === part.id_Detale, // Disable options matching the selectedPart1 value
-    }))}
-    value={selectedPart2}
-    onChange={(_, { value }) => setSelectedPart2(value)}
-    placeholder="--Select--"
-/>
-</Form.Field>
-</Form.Group>
-<button className="ui button palyginti" onClick={compareParts}>
-  Palyginti
-</button>
+              disabled: selectedPart1 === part.id_Detale, // Disable options matching the selectedPart1 value
+            }))}
+            value={selectedPart2}
+            onChange={(_, { value }) => setSelectedPart2(value)}
+            placeholder="--Select--"
+            />
+            </Form.Field>
+            </Form.Group>
+            <button className="ui button palyginti" onClick={compareParts}>
+    Palyginti
+  </button>
 
-<div className="differences">
-  {differences.length > 0 && <h2>Skirtumai:</h2>}
-  <ul>
-    {differences.map((difference, index) => (
-      <li key={index}>
-        <strong>Parametras: </strong> {difference.parameter}
-        <br />
-        {/^(id|kiekis)/.test(difference.part1Value) ? null : (
-          <>
-            <strong>Pirma detale: </strong>
-            {difference.parameter === 'isleidimo_data'
-              ? new Date(difference.part1Value).toLocaleDateString()
-              : difference.part1Value}
+  {showDifferences && (
+    <div className="differences">
+      {differences.length > 0 && <h2>Skirtumai:</h2>}
+      <ul>
+        {differences.map((difference, index) => (
+          <li key={index}>
+            <strong>Parametras: </strong> {difference.parameter}
             <br />
-          </>
-        )}
-        <strong>Antra detale: </strong>
-        {difference.parameter === 'isleidimo_data'
-          ? new Date(difference.part2Value).toLocaleDateString()
-          : difference.part2Value}
-        <br />
-        <span className="white-border"></span>
-        <br />
-      </li>
-    ))}
-  </ul>
-</div>
-
+            {/^(id|kiekis)/.test(difference.part1Value) ? null : (
+              <>
+                <strong>Pirma detale: </strong>
+                {difference.parameter === 'isleidimo_data'
+                  ? new Date(difference.part1Value).toLocaleDateString()
+                  : difference.part1Value}
+                <br />
+              </>
+            )}
+            <strong>Antra detale: </strong>
+            {difference.parameter === 'isleidimo_data'
+              ? new Date(difference.part2Value).toLocaleDateString()
+              : difference.part2Value}
+            <br />
+            <span className="white-border"></span>
+            <br />
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
 </div>
 );
 }
