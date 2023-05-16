@@ -730,9 +730,9 @@ const compareParts = (req, res) => {
       let id1 = req.params.id1;
       let id2 = req.params.id2;
   
-      const selectParts = `SELECT * FROM detale WHERE id_Detale = ?`;
+      const selectPart = `SELECT * FROM detale WHERE id_Detale = ?`;
   
-      connection.query(selectParts, [id1], (error, rows1) => {
+      connection.query(selectPart, [id1], (error, rows1) => {
         if (error) {
           return res.status(500).send(error);
         }
@@ -743,21 +743,21 @@ const compareParts = (req, res) => {
   
           let tipas = convertString(rows1[0].tipas);
   
-          const newSql1 = `SELECT * FROM ${tipas}
+          const selectPartTypeDetails1 = `SELECT * FROM ${tipas}
             INNER JOIN detale ON detale.id_Detale = ${tipas}.id_${tipas}
             WHERE ${tipas}.id_${tipas} = ${id1}`;
   
-          const newSql2 = `SELECT * FROM ${tipas}
+          const selectPartTypeDetails2 = `SELECT * FROM ${tipas}
             INNER JOIN detale ON detale.id_Detale = ${tipas}.id_${tipas}
             WHERE ${tipas}.id_${tipas} = ${id2}`;
   
   
-          connection.query(newSql1, (error, rowsNew1) => {
+          connection.query(selectPartTypeDetails1, (error, rowsNew1) => {
             if (error) {
               return res.status(500).send(error);
             }
   
-            connection.query(newSql2, (error, rowsNew2) => {
+            connection.query(selectPartTypeDetails2, (error, rowsNew2) => {
               if (error) {
                 return res.status(500).send(error);
               }

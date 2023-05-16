@@ -31,7 +31,8 @@ function SelectionPage() {
       } catch (error) {
           console.error('Failed to add some components: ', error);
       }
-      
+
+      // href()
       navigate(`/rinkiniai/${computerSetResponse.data.id}`);
 
       console.log(response.data);

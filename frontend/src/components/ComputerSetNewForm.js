@@ -21,12 +21,12 @@ export default function ComputerSetNewForm() {
                         window.location.href = 'http://localhost:3000/rinkiniai/'+ response1.data.id;
                     }
                     else{
-                        setKlaida("Rinkinys su tokio pavadinimu jau egzistuoja")
+                        setKlaida("Rinkinys su tokiu pavadinimu jau egzistuoja.")
                     }
                 }
                 else
                 {
-                    setKlaida("Įrašykite kažkokį pavadinimą")
+                    setKlaida("Įrašykite pavadinimą.")
                 }
             } catch (err) {
                 console.log(err.response.data.message)
@@ -54,7 +54,7 @@ export default function ComputerSetNewForm() {
             </div>
 
             <Button style={{marginLeft:150, marginTop:10}}>
-                sukurti
+                Sukurti
             </Button>
 
             <p style={{color:'red', marginLeft:150, marginTop:50}}>{klaida}</p>

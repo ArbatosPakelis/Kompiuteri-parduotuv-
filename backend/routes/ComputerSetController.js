@@ -230,7 +230,6 @@ const executeQuery = (connection, sql, params) => {
 };
 
 
-
 const checkComputerSetDuplication= (req, res) => {
   pool.getConnection((err, connection) => {
     if (err) throw err;
@@ -403,6 +402,7 @@ const generateComputer = async (req, res) => {
       });
     });
 
+    // assignBudget()
     const maxPrice = req.query.type === 'browsing' ? 300 : req.query.type === 'studying' ? 600 : req.query.type === 'gaming' ? Number.MAX_SAFE_INTEGER : 0;
     let cpuSocket, ramGen, pcieStand;
     let gamingMinPrice = 601;
