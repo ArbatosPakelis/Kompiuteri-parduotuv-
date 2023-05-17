@@ -402,7 +402,6 @@ const generateComputer = async (req, res) => {
       });
     });
 
-    // assignBudget()
     const maxPrice = req.query.type === 'browsing' ? 300 : req.query.type === 'studying' ? 600 : req.query.type === 'gaming' ? Number.MAX_SAFE_INTEGER : 0;
     let cpuSocket, ramGen, pcieStand;
     let gamingMinPrice = 601;
@@ -540,43 +539,33 @@ const generateComputer = async (req, res) => {
     };
     
     const promises = components.map(c => {
-      // Declare tryQuery function outside of promise
-      const tryQuery = async (price, minPrice, decreaseRate = 0.5) => {
+      const tryQuery = async (price, minPrice) => {
         return new Promise((resolve, reject) => {
           const queryParams = c.parameters.map(p => p === 'price' ? price : mboardparameters[p]);
-    
+      
           console.log('Executing query for:', c.type);
           console.log('Parameters:', queryParams);
-          console.log(minPrice);
-    
+      
           connection.query(c.sql, queryParams, (error, rows) => {
             if (error) {
               reject(error);
             } else {
               const filteredRows = rows.filter(row => row.kaina >= minPrice);
               if (filteredRows.length === 0) {
-                if (price <= minPrice || price < 1 || minPrice < 1) {
-                  reject(new Error(`${c.type} is Out of Stock`));  // Reject the promise with an error
-                } else {
-                  // Try again with lower price
-                  tryQuery(price * decreaseRate, minPrice * decreaseRate)
-                    .then(result => resolve(result))
-                    .catch(err => reject(err));
-                }
-              }
-              else {
+                reject(new Error(`${c.type} is Out of Stock`));
+              } else {
                 const randomIndex = Math.floor(Math.random() * filteredRows.length);
                 const randomElement = filteredRows[randomIndex];
-    
+      
                 resolve({ type: c.type, details: randomElement });
               }
             }
           });
         });
       };
-    
-      // Return promise immediately invoking tryQuery function
+      
       return tryQuery(c.price, c.minPrice);
+      
     });
     
 
